@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="en-IE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AdjustAble Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ---------- Page (outside the phone) ---------- */
+:root{
+  --page-bg:#ECE9E1; --page-text:#1A1F36; --page-muted:#5B6175; --page-card:#FFFFFF; --page-line:#D9D5CA;
+  --brand-navy:#1F2C6E; --brand-gold:#F2C230; --brand-red:#C8202B;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --page-bg:#0E1122; --page-text:#E9ECF7; --page-muted:#A3A9C2; --page-card:#181C36; --page-line:#2B3156; }
+}
+:root[data-theme="dark"]{ --page-bg:#0E1122; --page-text:#E9ECF7; --page-muted:#A3A9C2; --page-card:#181C36; --page-line:#2B3156; }
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--page-bg);color:var(--page-text);font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}
+.topbar{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--page-line);background:var(--page-card)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand img{width:44px;height:44px;border-radius:50%}
+.brand h1{font-size:1.1rem;margin:0}
+.brand p{margin:0;font-size:.85rem;color:var(--page-muted)}
+.role-switch{display:inline-flex;border:2px solid var(--brand-navy);border-radius:999px;overflow:hidden}
+.role-switch button{border:0;background:transparent;color:var(--page-text);padding:8px 16px;font:inherit;font-weight:700;cursor:pointer}
+.role-switch button[aria-pressed="true"]{background:var(--brand-navy);color:#fff}
+.top-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ghost{border:1px solid var(--page-line);background:transparent;color:var(--page-text);border-radius:8px;padding:7px 12px;font:inherit;cursor:pointer}
+.stage{display:flex;gap:32px;justify-content:center;align-items:flex-start;padding:28px 16px 48px;flex-wrap:wrap}
+.phone{width:400px;max-width:100%;height:min(820px,calc(100vh - 130px));min-height:620px;border-radius:40px;background:#111;padding:12px;box-shadow:0 20px 50px rgba(0,0,0,.25);flex-shrink:0}
+.notes{width:380px;max-width:100%;background:var(--page-card);border:1px solid var(--page-line);border-radius:16px;padding:20px 22px;position:sticky;top:20px}
+.notes .eyebrow{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--page-muted);font-weight:700}
+.notes h2{margin:4px 0 10px;font-size:1.2rem}
+.notes p{margin:0 0 12px;font-size:.95rem}
+.notes ul{margin:0 0 12px;padding-left:18px;font-size:.92rem}
+.lo-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.lo-tag{background:var(--brand-gold);color:#1A1F36;border-radius:999px;padding:2px 10px;font-size:.8rem;font-weight:700}
+.notes .src{font-size:.82rem;color:var(--page-muted);border-top:1px solid var(--page-line);padding-top:10px}
+.notes .disclaimer{font-size:.78rem;color:var(--page-muted);margin-top:14px}
+@media (max-width:860px){
+  .stage{padding:16px}
+  .phone{width:100%;height:auto;min-height:0;border-radius:0;padding:0;background:none;box-shadow:none}
+  .notes{position:static;width:100%}
+}
+
+/* ---------- App (inside the phone) ---------- */
+.app{
+  --bg:#F7F5F0; --surface:#FFFFFF; --text:#1A1F36; --muted:#5B6175; --accent:#1F2C6E; --accent-ink:#FFFFFF;
+  --gold:#F2C230; --gold-soft:#FDF3D0; --red:#B3202A; --red-soft:#FBE6E6; --green:#256B43; --green-soft:#E3F2E8;
+  --line:#E3E0D8; --soft:#EEF0F8; --fs:16px; --lh:1.55; --font:"Atkinson Hyperlegible",system-ui,sans-serif;
+  height:100%;background:var(--bg);color:var(--text);border-radius:30px;overflow:hidden;display:flex;flex-direction:column;
+  font-family:var(--font);font-size:var(--fs);line-height:var(--lh)
+}
+.app[data-theme="dark"]{--bg:#12152A;--surface:#1C2140;--text:#EDEFF7;--muted:#A9AFC6;--accent:#9AACFF;--accent-ink:#0E1122;--gold-soft:#3A3318;--red:#FF8A8A;--red-soft:#3D1D24;--green:#7FD6A1;--green-soft:#173326;--line:#2C3358;--soft:#232A4F}
+.app[data-theme="contrast"]{--bg:#FFFFFF;--surface:#FFFFFF;--text:#000;--muted:#000;--accent:#000080;--accent-ink:#FFF;--gold:#FFD400;--gold-soft:#FFF;--red:#A00000;--red-soft:#FFF;--green:#004D1A;--green-soft:#FFF;--line:#000;--soft:#FFF}
+.app[data-theme="contrast"] .card,.app[data-theme="contrast"] .chip{border-width:2px}
+@media (max-width:860px){.app{border-radius:0;min-height:calc(100vh - 140px)}}
+.app-head{display:flex;align-items:center;gap:10px;padding:16px 18px 12px;background:var(--surface);border-bottom:1px solid var(--line)}
+.app-head img{width:34px;height:34px;border-radius:50%}
+.app-head .t{font-weight:700;line-height:1.2}
+.app-head .s{font-size:.78em;color:var(--muted)}
+.app-head .back{margin-left:auto}
+.screen{flex:1;overflow-y:auto;padding:18px 16px 24px}
+.nav{display:grid;grid-template-columns:repeat(5,1fr);background:var(--surface);border-top:1px solid var(--line);padding:6px 4px 10px}
+.nav button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:.72em;padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-radius:10px}
+.nav button .i{font-size:1.35em;line-height:1}
+.nav button[aria-current="page"]{color:var(--accent);font-weight:700;background:var(--soft)}
+h2.h{font-size:1.3em;margin:0 0 4px;line-height:1.25}
+h3.h{font-size:1.05em;margin:18px 0 8px}
+.sub{color:var(--muted);margin:0 0 14px;font-size:.92em}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:12px}
+.card.gold{background:var(--gold-soft);border-color:var(--gold)}
+.card.red{background:var(--red-soft);border-color:var(--red)}
+.card.green{background:var(--green-soft);border-color:var(--green)}
+.card h4{margin:0 0 4px;font-size:1em}
+.card p{margin:0 0 6px}
+.row{display:flex;align-items:center;gap:10px}
+.row.between{justify-content:space-between}
+.stack>*+*{margin-top:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:2px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:12px;padding:10px 14px;font:inherit;font-weight:700;cursor:pointer;text-align:center}
+.btn.block{width:100%}
+.btn.secondary{background:transparent;color:var(--accent)}
+.btn.small{padding:6px 10px;font-size:.88em;border-radius:10px}
+.btn.danger{background:var(--red);border-color:var(--red);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,.tile:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.chip{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:.78em;font-weight:700;background:var(--soft);color:var(--text);white-space:nowrap}
+.chip.gold{background:var(--gold-soft);border-color:var(--gold)}
+.chip.red{background:var(--red-soft);border-color:var(--red);color:var(--red)}
+.chip.green{background:var(--green-soft);border-color:var(--green);color:var(--green)}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:12px;text-align:left;font:inherit;color:var(--text);cursor:pointer}
+.tile .i{font-size:1.5em;display:block;margin-bottom:4px}
+.tile[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
+.tile small{display:block;color:var(--muted);font-size:.8em;line-height:1.35}
+label.f{display:block;font-weight:700;margin:12px 0 6px}
+.hint{font-size:.85em;color:var(--muted);margin:-2px 0 6px}
+textarea,input[type=text],input[type=date],input[type=search],select{width:100%;font:inherit;color:var(--text);background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:10px 12px}
+textarea{min-height:96px;resize:vertical}
+.check{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--surface);cursor:pointer}
+.check input{margin-top:5px;width:18px;height:18px;flex-shrink:0;accent-color:var(--accent)}
+.toggle{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.toggle:last-child{border-bottom:0}
+.toggle input{width:22px;height:22px;accent-color:var(--accent);flex-shrink:0}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:2px solid var(--line);background:var(--surface);color:var(--text);border-radius:10px;padding:7px 12px;font:inherit;cursor:pointer}
+.seg button[aria-pressed="true"]{border-color:var(--accent);background:var(--soft);font-weight:700}
+.progress{display:flex;gap:4px;margin:10px 0 4px}
+.progress span{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.progress span.on{background:var(--accent)}
+.steps{list-style:none;margin:0;padding:0}
+.steps li{position:relative;padding:0 0 16px 34px}
+.steps li::before{content:"";position:absolute;left:11px;top:24px;bottom:0;width:2px;background:var(--line)}
+.steps li:last-child::before{display:none}
+.steps .dot{position:absolute;left:0;top:2px;width:24px;height:24px;border-radius:50%;border:2px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:.75em;font-weight:700}
+.steps li.done .dot{background:var(--green);border-color:var(--green);color:#fff}
+.steps li.now .dot{border-color:var(--accent);color:var(--accent)}
+.steps .st{font-weight:700}
+.steps .sd{font-size:.85em;color:var(--muted)}
+.msg{background:var(--soft);border-radius:12px;padding:10px 12px;margin-bottom:8px;font-size:.92em}
+.msg .who{font-weight:700;font-size:.85em}
+.person{display:flex;gap:12px;align-items:center}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.list-btn{width:100%;text-align:left;font:inherit;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:10px;cursor:pointer}
+details.learn{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+details.learn summary{font-weight:700;cursor:pointer}
+details.learn p{margin:8px 0 0}
+details.learn .src{font-size:.8em;color:var(--muted);margin-top:8px}
+.law{border-left:4px solid var(--gold);padding:8px 12px;background:var(--gold-soft);border-radius:0 10px 10px 0;font-size:.9em;margin:8px 0}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#1A1F36;color:#fff;padding:12px 18px;border-radius:12px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:20;max-width:90vw}
+.app.motion .screen{animation:fade .18s ease-out}
+@keyframes fade{from{opacity:.4}to{opacity:1}}
+@media (prefers-reduced-motion: reduce){.app.motion .screen{animation:none}}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <img src="Logo%202.png" alt="Jacks Manufacturing Ltd logo">
+    <div>
+      <h1>Jacks Manufacturing Ltd · AdjustAble</h1>
+      <p>Interactive prototype: workplace adjustment passport &amp; request app</p>
+    </div>
+  </div>
+  <div class="top-actions">
+    <span style="font-size:.85rem;color:var(--page-muted)">Viewing as:</span>
+    <div class="role-switch" role="group" aria-label="Choose view">
+      <button id="roleEmp" aria-pressed="true">Employee (Sam)</button>
+      <button id="roleMgr" aria-pressed="false">Line manager (Niamh)</button>
+    </div>
+    <button class="ghost" id="toggleNotes">Hide notes</button>
+    <button class="ghost" id="resetDemo">Reset demo</button>
+  </div>
+</header>
+
+<main class="stage">
+  <div class="phone"><div class="app motion" id="app" aria-live="polite"></div></div>
+  <aside class="notes" id="notes" aria-label="Presenter notes"></aside>
+</main>
+<div id="toastHost" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+   AdjustAble — prototype for Jacks Manufacturing Ltd (fictional)
+   All people, data and policies are fictional, for a university
+   group project. State is kept in this browser only.
+   ============================================================ */
+
+const STORE_KEY = "adjustable-demo-v1";
+const DAY = 86400000;
+
+/* ---------- Date helpers ---------- */
+function today(){ const d = new Date(); d.setHours(9,0,0,0); return d; }
+function addWorkingDays(date, n){
+  const d = new Date(date); let step = n < 0 ? -1 : 1; let left = Math.abs(n);
+  while(left > 0){ d.setTime(d.getTime() + step*DAY); const w = d.getDay(); if(w !== 0 && w !== 6) left--; }
+  return d;
+}
+function workingDaysBetween(a, b){
+  let d = new Date(a), n = 0;
+  while(d < b){ d.setTime(d.getTime() + DAY); const w = d.getDay(); if(w !== 0 && w !== 6) n++; }
+  return n;
+}
+function fmt(iso){ if(!iso) return ""; return new Date(iso).toLocaleDateString("en-IE",{weekday:"short",day:"numeric",month:"short"}); }
+function iso(d){ return new Date(d).toISOString(); }
+function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* Company policy targets (fictional, set by Jacks — not legal deadlines) */
+const TARGETS = { ack: 2, talk: 10, decide: 20 };
+
+/* ---------- Adjustment library ---------- */
+const CATS = {
+  schedule:     {icon:"🗓️", name:"Rota & routine",        desc:"Shifts, breaks, notice of changes"},
+  environment:  {icon:"🔊", name:"Sensory & workspace",    desc:"Noise, light, where you work"},
+  communication:{icon:"💬", name:"Communication",          desc:"Instructions, meetings, feedback"},
+  tasks:        {icon:"✅", name:"Tasks & organisation",   desc:"Planning, memory, focus"},
+  tech:         {icon:"💻", name:"Technology",             desc:"Software and equipment"},
+  wellbeing:    {icon:"🌱", name:"Wellbeing & support",    desc:"Check-ins, buddies, energy"},
+  onboarding:   {icon:"👋", name:"Starting at Jacks",      desc:"Induction and first weeks"}
+};
+const LIBRARY = [
+  {cat:"schedule", t:"Fixed shift pattern", helps:"Predictability, sleep, fatigue", cost:"€0", ex:"Same early shifts on Line 2 each week instead of rotating."},
+  {cat:"schedule", t:"At least 1 week's notice of rota changes", helps:"Anxiety, planning, family routines", cost:"€0", ex:"Rota published every Friday for the week after next."},
+  {cat:"schedule", t:"Two consecutive rest days", helps:"Recovery, burnout prevention", cost:"€0", ex:"Rest days kept together (e.g. Sat–Sun or Mon–Tue)."},
+  {cat:"schedule", t:"Flexible start and finish times", helps:"Energy, travel stress, medication timing", cost:"€0", ex:"Office staff start between 7:30 and 9:30."},
+  {cat:"environment", t:"Ear defenders or noise-reducing PPE", helps:"Sensory overload on the factory floor", cost:"Low (under €50)", ex:"Fitted defenders that still allow safety alarms to be heard."},
+  {cat:"environment", t:"Quiet break space", helps:"Recovering from noise and busy canteens", cost:"€0 – Low", ex:"Small meeting room booked as a low-sensory room at break times."},
+  {cat:"environment", t:"Workstation away from high-traffic areas", helps:"Distraction, interruptions", cost:"€0", ex:"Quality bench moved away from the forklift route."},
+  {cat:"environment", t:"Non-flicker lighting", helps:"Headaches, visual sensitivity", cost:"Low – Medium (grant may help)", ex:"Replace flickering tube above Inspection Bay 3."},
+  {cat:"communication", t:"Written summary after verbal briefings", helps:"Processing time, memory", cost:"€0", ex:"Shift handover notes posted on the team app."},
+  {cat:"communication", t:"Picture-based or video SOPs", helps:"Reading load, multi-step processes", cost:"Low", ex:"Photo guide for Line 4 changeover."},
+  {cat:"communication", t:"Questions or agenda before meetings", helps:"Preparation, reduces anxiety", cost:"€0", ex:"1:1 agenda shared the day before."},
+  {cat:"communication", t:"Clear, direct language — one instruction at a time", helps:"Avoids misunderstanding (works both ways)", cost:"€0", ex:"\"Please restock bay 2 by 11:00\" instead of \"could you look at bay 2 when you get a sec?\""},
+  {cat:"tasks", t:"Checklists for multi-step tasks", helps:"Working memory, attention", cost:"€0", ex:"Laminated start-up checklist at each machine."},
+  {cat:"tasks", t:"Visual schedule or task timers", helps:"Time management, transitions", cost:"Low", ex:"Shift plan shown on a board by the line."},
+  {cat:"tech", t:"Text-to-speech / speech-to-text software", helps:"Reading and writing load", cost:"Low (grant may help)", ex:"Read-aloud on the quality tablet; dictation for incident reports."},
+  {cat:"tech", t:"Noise-cancelling headphones (office)", helps:"Concentration in open-plan areas", cost:"Low", ex:"For admin and planning staff."},
+  {cat:"wellbeing", t:"Regular short breaks", helps:"Focus, sensory recovery", cost:"€0", ex:"5 minutes every hour on repetitive tasks."},
+  {cat:"wellbeing", t:"Named buddy or mentor", helps:"Unwritten rules, confidence", cost:"€0", ex:"Experienced operator paired for the first 3 months."},
+  {cat:"wellbeing", t:"Regular 1:1 check-ins", helps:"Early problem-solving, reviewing adjustments", cost:"€0", ex:"15 minutes every two weeks."},
+  {cat:"onboarding", t:"Site visit before the first day", helps:"Reduces uncertainty", cost:"€0", ex:"Walk-through of the canteen, locker room and line."},
+  {cat:"onboarding", t:"Phased induction with written plan", helps:"Information overload", cost:"€0", ex:"Induction spread over 2 weeks, with a printed schedule."}
+];
+
+/* ---------- Seed data ---------- */
+function seed(){
+  const T = today();
+  return {
+    role:"employee",
+    route:{employee:"home", manager:"home"},
+    params:{},
+    wizard:null,
+    checkin:null,
+    showNotes:true,
+    settings:{ size:1, font:"atkinson", theme:"light", motion:true, digest:false, spacing:false },
+    people:{
+      sam:{ name:"Sam Byrne", role:"Production Operative, Line 2", initials:"SB",
+        passport:{
+          strengths:{ text:"Very accurate on quality checks. I spot patterns and defects quickly. Reliable and like doing things the right way.", share:true },
+          communication:{ text:"Please give instructions in writing or send a quick message after we talk. I may need a moment to process before answering a question. Direct is good — I won't take it as rude.", share:true },
+          environment:{ text:"The noise near the press on Line 2 is hard for me over a full shift. Ear defenders help. Busy canteen at 12:30 is overwhelming.", share:true },
+          schedule:{ text:"I work best with the same shifts each week. Short-notice changes and swapping between early and late in the same week leave me exhausted.", share:true },
+          struggling:{ text:"I might go quiet or need to step away for a few minutes. Please check in privately, not in front of the team.", share:false },
+          diagnosis:{ text:"", share:false }
+        },
+        agreed:["Ear defenders (fitted, alarm-safe)"]
+      },
+      alex:{ name:"Alex Murphy", role:"Line 4 Technician", initials:"AM",
+        passport:{
+          strengths:{ text:"Great at fault-finding and fixing machines. Explains things well with drawings.", share:true },
+          communication:{ text:"Long written documents are slow for me. Pictures, diagrams or a quick demo work best.", share:true },
+          environment:{ text:"No issues.", share:true },
+          schedule:{ text:"Flexible.", share:true }
+        },
+        agreed:["Picture-based changeover SOPs","Text-to-speech on the maintenance tablet"]
+      },
+      jordan:{ name:"Jordan Walsh", role:"Packing Operative", initials:"JW",
+        passport:{
+          strengths:{ text:"High energy, fast, good under pressure, great with the team.", share:true },
+          communication:{ text:"Short, clear instructions. Checklists help me keep track.", share:true }
+        },
+        agreed:["Start-up checklist at packing station"]
+      },
+      priya:{ name:"Priya Nair", role:"Quality Inspector (new starter)", initials:"PN", passport:null, agreed:[] }
+    },
+    requests:[
+      { id:"r1", who:"sam", cat:"schedule", title:"Consistent shift pattern",
+        barrier:"Rota changes at short notice and switching between early and late shifts in the same week leave me exhausted and anxious. I don't recover properly when I only get single days off.",
+        helps:["Fixed shift pattern","At least 1 week's notice of rota changes","Two consecutive rest days"],
+        talk:"In person, with a written summary afterwards", support:false,
+        submitted: iso(addWorkingDays(T,-6)),
+        steps:{ ack:{done:true, date:iso(addWorkingDays(T,-5))}, talk:{booked:iso(addWorkingDays(T,2)), done:false}, advice:{}, decide:{}, review:{} },
+        msgs:[ {from:"Niamh Kelly", date:iso(addWorkingDays(T,-5)), text:"Thanks Sam, I've got your request. Let's sit down and talk it through — I've booked us in. I'll send a written summary after."} ] },
+      { id:"r2", who:"jordan", cat:"environment", title:"Quiet space for breaks",
+        barrier:"The canteen is very loud at break time and I come back to the line more wound up than before.",
+        helps:["Quiet break space"], talk:"Quick chat on the floor is fine", support:false,
+        submitted: iso(addWorkingDays(T,-4)),
+        steps:{ ack:{}, talk:{}, advice:{}, decide:{}, review:{} }, msgs:[] },
+      { id:"r3", who:"alex", cat:"communication", title:"Picture-based changeover instructions",
+        barrier:"The 12-page written changeover procedure takes me a long time to read and I worry about missing a step.",
+        helps:["Picture-based or video SOPs","Text-to-speech / speech-to-text software"], talk:"In person", support:false,
+        submitted: iso(addWorkingDays(T,-40)),
+        steps:{ ack:{done:true,date:iso(addWorkingDays(T,-39))}, talk:{done:true,booked:iso(addWorkingDays(T,-36)),date:iso(addWorkingDays(T,-36))},
+                advice:{skipped:true,date:iso(addWorkingDays(T,-36))}, decide:{done:true,outcome:"approved",note:"Photo guide created with Alex; read-aloud enabled on the tablet.",date:iso(addWorkingDays(T,-33))},
+                review:{date:iso(addWorkingDays(T,4))} }, msgs:[] }
+    ]
+  };
+}
+
+let S;
+try { S = JSON.parse(localStorage.getItem(STORE_KEY)) || seed(); } catch(e){ S = seed(); }
+function save(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch(e){} }
+
+/* ---------- Derived helpers ---------- */
+function statusOf(r){
+  const s = r.steps;
+  if(s.decide.done){
+    return {approved:{label:"Agreed",cls:"green"}, trial:{label:"Agreed — trial",cls:"green"}, alternative:{label:"Alternative offered",cls:"gold"}, declined:{label:"Not agreed",cls:"red"}}[s.decide.outcome];
+  }
+  if(s.talk.done) return {label:"Being decided",cls:"gold"};
+  if(s.talk.booked) return {label:"Conversation booked",cls:"gold"};
+  if(s.ack.done) return {label:"Acknowledged",cls:"gold"};
+  return {label:"Sent",cls:""};
+}
+function nextDue(r){
+  const sub = new Date(r.submitted), s = r.steps;
+  if(!s.ack.done) return {what:"Acknowledge", due:addWorkingDays(sub,TARGETS.ack)};
+  if(!s.talk.done) return {what:"Talk together", due:addWorkingDays(sub,TARGETS.talk)};
+  if(!s.decide.done) return {what:"Decide", due:addWorkingDays(sub,TARGETS.decide)};
+  if(s.review.date) return {what:"Review", due:new Date(s.review.date)};
+  return null;
+}
+function dueChip(r){
+  const n = nextDue(r); if(!n) return "";
+  const t = today(); const diff = Math.round((n.due - t)/DAY);
+  if(diff < 0) return `<span class="chip red">${esc(n.what)}: overdue ${-diff}d</span>`;
+  if(diff <= 2) return `<span class="chip gold">${esc(n.what)}: due ${diff===0?"today":fmt(n.due)}</span>`;
+  return `<span class="chip">${esc(n.what)} by ${fmt(n.due)}</span>`;
+}
+const P = id => S.people[id];
+const R = id => S.requests.find(r => r.id === id);
+
+/* ---------- Presenter notes per screen ---------- */
+const NOTES = {
+  "employee:home":{t:"Employee home", lo:["LO2","LO4"], body:`<p>A calm, predictable home screen: same layout every visit, plain language, and <b>one clear next step</b>. Reduces cognitive load for people with executive-function or sensory differences.</p><p>The weekly check-in is <b>private by default</b>. Sam chooses whether anything is shared.</p>`, src:"CIPD (2024): 31% of neurodivergent employees haven't told their manager or HR, so the app never forces disclosure."},
+  "employee:passport":{t:"Adjustment passport", lo:["LO2","LO3","LO5"], body:`<p>A portable record of <b>how Sam works best</b>, written by Sam in their own words. It means they don't have to re-explain when their manager changes.</p><ul><li>Starts with <b>strengths</b> (neurodiversity paradigm), not deficits.</li><li>Focuses on <b>barriers and solutions</b>, not diagnosis (social model).</li><li><b>Per-section sharing</b> respects the choice to disclose; a diagnosis is optional and private by default.</li></ul>`, src:"CIPD (2024) recommends adjustment passports; Oliver (1990) social model; Walker (2021) neurodiversity paradigm; 37% fear stereotypes if they disclose (CIPD, 2024)."},
+  "employee:request":{t:"Asking for an adjustment", lo:["LO2","LO3","LO4"], body:`<p>A short guided form in 4 steps, with a progress bar and suggestions so the employee doesn't have to know the \"right\" answer.</p><ul><li>Asks <b>what gets in the way</b>, not \"what's your condition\".</li><li>Sam chooses <b>how to have the conversation</b> (in person, written, with a support person), reflecting the double empathy problem: communication is a two-way responsibility.</li></ul>`, src:"Milton (2012) double empathy problem; Employment Equality Acts 1998–2015 s.16; Doyle (2020) biopsychosocial model."},
+  "employee:requests":{t:"Request tracker", lo:["LO2","LO5"], body:`<p>Like a parcel tracker: Sam can see exactly where the request is and <b>when to expect the next step</b>. Uncertainty itself is a barrier.</p><p>Built in response to <i>O'Riordan v Omniplex</i>, where the Labour Court found a <b>considerable delay</b> in engaging with an autistic employee's roster requests and increased the award to €29,000.</p>`, src:"O'Riordan v Omniplex Cork Ltd, ADJ-00051601 (WRC, 2024); EDA2620 (Labour Court, 2026)."},
+  "employee:support":{t:"Support & rights", lo:["LO2","LO3"], body:`<p>Plain-English explanation of rights under Irish equality law, plus signposting to internal and external support, including neurodivergent-led organisations.</p>`, src:"Employment Equality Acts 1998–2015; Nano Nagle School v Daly [2019] IESC 63."},
+  "employee:settings":{t:"Make the app work for you", lo:["LO1","LO4"], body:`<p>The app is <b>neuroinclusive by design</b>: readable fonts (Atkinson Hyperlegible, Lexend), text size, extra spacing, dark and high-contrast themes, reduced motion, and a <b>daily digest</b> instead of constant notifications.</p><p>This reflects the \"spiky profile\". Different people need different settings, so one design doesn't fit all.</p>`, src:"Doyle (2020) British Medical Bulletin; sensory processing differences in autism and ADHD (Lord et al., 2020; Faraone et al., 2021)."},
+  "manager:home":{t:"Manager dashboard", lo:["LO5"], body:`<p>\"Needs your attention\" puts every open request in order of urgency, with <b>response timers</b> based on company targets (acknowledge in 2 working days, talk within 10, decide within 20).</p><p>Delay is made visible before it becomes a legal or wellbeing problem.</p>`, src:"Kelly and O'Connell (2026): limited or delayed engagement is not enough; awards must be \"effective, proportionate and dissuasive\" (Von Colson)."},
+  "manager:request":{t:"Guided accommodation process", lo:["LO2","LO5"], body:`<p>The steps mirror Irish law and case law:</p><ul><li><b>Acknowledge</b> quickly.</li><li><b>Talk together</b>: <i>Nano Nagle v Daly</i> says prudent employers engage with the employee.</li><li><b>Get advice, don't assume</b>: <i>Dunne v Sky Handling</i> (€15,000), where the employer googled dyspraxia instead of meeting the employee.</li><li><b>Decide</b>: declining requires a documented \"disproportionate burden\" assessment (s.16(3)) and HR sign-off.</li><li><b>Review</b>: needs change over time.</li></ul>`, src:"Nano Nagle [2019] IESC 63; ADJ-00017364; Employment Equality Acts s.16(3)."},
+  "manager:team":{t:"My team", lo:["LO4","LO5"], body:`<p>Managers see <b>only what each person chose to share</b>. New starters are invited to create a passport, so adjustments are offered from day one rather than after problems appear.</p>`, src:"CIPD (2024); Buckland (2024) on onboarding and retention."},
+  "manager:member":{t:"Shared passport view", lo:["LO2","LO3"], body:`<p>A quick \"how to work well with me\" view. No diagnosis is shown unless the person chose to share it. Strengths come first.</p>`, src:"Pearson and Rose (2021): reducing the need to mask supports wellbeing."},
+  "manager:library":{t:"Adjustment library", lo:["LO2","LO4"], body:`<p>Searchable ideas organised by <b>barrier</b>, not by condition, so they work across a cross-section of neurodivergence (autism, ADHD, dyslexia, dyspraxia, Tourette's and more) and for people without a diagnosis.</p><p>Most are <b>free or low cost</b>, with manufacturing examples specific to Jacks.</p>`, src:"Acas (n.d.) Adjustments for neurodiversity; Krzeminska et al. (2019)."},
+  "manager:learn":{t:"Micro-learning for managers", lo:["LO1","LO3","LO4"], body:`<p>Two-minute cards on the neurological basics, competing discourses (medical vs social model, the \"superpower\" problem), masking, double empathy and legal duties.</p><p>Short, practical training like this was ordered as a remedy by the WRC in <i>O'Riordan v Omniplex</i>.</p>`, src:"Singer (2017); Walker (2021); Milton (2012); Pearson and Rose (2021); MacCarthy and Killelea (2024)."},
+  "manager:settings":null
+};
+NOTES["manager:settings"] = NOTES["employee:settings"];
+NOTES["employee:request-detail"] = NOTES["employee:requests"];
+
+/* ---------- Rendering ---------- */
+const app = document.getElementById("app");
+const notes = document.getElementById("notes");
+
+function go(route, params){ S.route[S.role] = route; S.params = params || {}; save(); render(); app.querySelector(".screen")?.scrollTo(0,0); }
+
+function navItems(){
+  return S.role === "employee"
+    ? [["home","🏠","Home"],["passport","🪪","Passport"],["requests","📋","Requests"],["support","🤝","Support"],["settings","⚙️","Settings"]]
+    : [["home","🏠","Home"],["team","👥","Team"],["library","📚","Library"],["learn","💡","Learn"],["settings","⚙️","Settings"]];
+}
+function navKey(route){
+  if(route === "request" && S.role === "employee") return "requests";
+  if(route === "request-detail") return "requests";
+  if(route === "request" && S.role === "manager") return "home";
+  if(route === "member") return "team";
+  return route;
+}
+
+function applySettings(){
+  const st = S.settings;
+  app.style.setProperty("--fs", [15,17,19][st.size] + "px");
+  app.style.setProperty("--lh", st.spacing ? "1.8" : "1.55");
+  app.style.setProperty("--font", {atkinson:'"Atkinson Hyperlegible",system-ui,sans-serif', lexend:'"Lexend",system-ui,sans-serif', system:'system-ui,-apple-system,"Segoe UI",sans-serif'}[st.font]);
+  app.setAttribute("data-theme", st.theme);
+  app.classList.toggle("motion", st.motion);
+  app.style.letterSpacing = st.spacing ? ".02em" : "";
+  app.style.wordSpacing = st.spacing ? ".08em" : "";
+}
+
+function render(){
+  applySettings();
+  const route = S.route[S.role];
+  const me = S.role === "employee" ? P("sam") : {name:"Niamh Kelly", role:"Shift Supervisor, Line 2"};
+  const screens = S.role === "employee"
+    ? {home:eHome, passport:ePassport, request:eRequest, requests:eRequests, "request-detail":eRequestDetail, support:eSupport, settings:settingsScreen}
+    : {home:mHome, request:mRequest, team:mTeam, member:mMember, library:mLibrary, learn:mLearn, settings:settingsScreen};
+  const fn = screens[route] || screens.home;
+  const isSub = ["request-detail","member"].includes(route) || (S.role==="manager" && route==="request");
+  app.innerHTML = `
+    <div class="app-head">
+      <img src="Logo%202.png" alt="">
+      <div><div class="t">AdjustAble</div><div class="s">Jacks Manufacturing Ltd · ${esc(me.name)}</div></div>
+      ${isSub ? `<button class="btn small secondary back" data-go="${S.role==='manager' && route==='member' ? 'team' : S.role==='manager' ? 'home' : 'requests'}">← Back</button>` : ""}
+    </div>
+    <div class="screen" tabindex="-1">${fn()}</div>
+    <nav class="nav" aria-label="Main">
+      ${navItems().map(([k,i,l]) => `<button data-go="${k}" ${navKey(route)===k?'aria-current="page"':''}><span class="i" aria-hidden="true">${i}</span>${l}</button>`).join("")}
+    </nav>`;
+  renderNotes(route);
+  document.getElementById("roleEmp").setAttribute("aria-pressed", S.role==="employee");
+  document.getElementById("roleMgr").setAttribute("aria-pressed", S.role==="manager");
+  notes.style.display = S.showNotes ? "" : "none";
+  document.getElementById("toggleNotes").textContent = S.showNotes ? "Hide notes" : "Show notes";
+}
+
+function renderNotes(route){
+  const n = NOTES[`${S.role}:${route}`] || NOTES[`${S.role}:home`];
+  notes.innerHTML = `
+    <div class="eyebrow">Presenter notes · not part of the app</div>
+    <h2>${n.t}</h2>
+    <div class="lo-tags">${n.lo.map(l=>`<span class="lo-tag">${l}</span>`).join("")}</div>
+    ${n.body}
+    <p class="src"><b>Evidence:</b> ${n.src}</p>
+    <p class="disclaimer">Prototype for a university group project. Jacks Manufacturing Ltd, its staff and its policies are fictional. Data is stored only in this browser. Try switching between <b>Employee</b> and <b>Line manager</b>: actions in one view update the other.</p>`;
+}
+
+/* ---------- Employee screens ---------- */
+function eHome(){
+  const mine = S.requests.filter(r => r.who==="sam");
+  const open = mine.filter(r => !r.steps.decide.done);
+  const pp = P("sam").passport;
+  const sharedCount = Object.entries(pp).filter(([k,v]) => k!=="diagnosis" && v.share).length;
+  const ci = S.checkin;
+  return `
+    <h2 class="h">Hi Sam 👋</h2>
+    <p class="sub">Here's what's happening. Nothing here is urgent.</p>
+
+    ${open.map(r => { const n = nextDue(r); const st = statusOf(r); return `
+      <button class="list-btn" data-go="request-detail" data-id="${r.id}">
+        <div class="row between"><b>${esc(r.title)}</b><span class="chip ${st.cls}">${st.label}</span></div>
+        ${progressBar(r)}
+        <div class="sub" style="margin:4px 0 0">${r.steps.talk.booked && !r.steps.talk.done ? `Next: chat with Niamh on <b>${fmt(r.steps.talk.booked)}</b>` : n ? `Next step expected by <b>${fmt(n.due)}</b>` : ""}</div>
+      </button>`; }).join("")}
+
+    <div class="card">
+      <div class="row between"><h4>🪪 My passport</h4><span class="chip green">${sharedCount} sections shared</span></div>
+      <p class="sub" style="margin:0 0 8px">Shared with Niamh Kelly (line manager). You choose what's visible.</p>
+      <button class="btn small secondary" data-go="passport">View or edit</button>
+    </div>
+
+    <button class="btn block" data-act="startRequest">＋ Ask for an adjustment</button>
+
+    <h3 class="h">Weekly check-in <span class="chip">Private</span></h3>
+    ${ci ? checkinResult(ci) : `
+      <div class="card">
+        <p style="margin:0 0 10px">How has work felt this week?</p>
+        <div class="seg">
+          <button data-act="checkin" data-v="good">😊 Good</button>
+          <button data-act="checkin" data-v="mixed">😐 Mixed</button>
+          <button data-act="checkin" data-v="hard">😣 Hard</button>
+        </div>
+        <p class="hint" style="margin:10px 0 0">Only you see this unless you choose to share it.</p>
+      </div>`}`;
+}
+function checkinResult(v){
+  if(v==="good") return `<div class="card green"><p style="margin:0">Glad to hear it. 🎉 You can check in again next week.</p></div>`;
+  return `<div class="card gold">
+    <p><b>Thanks for telling us.</b> Would any of these help? You don't have to choose any.</p>
+    <div class="stack">
+      <button class="btn small secondary block" data-act="shareCheckin">Let Niamh know I'd like a private chat</button>
+      <button class="btn small secondary block" data-act="startRequest">Ask for an adjustment</button>
+      <button class="btn small secondary block" data-go="support">See support options (EAP, HR, ND Network)</button>
+    </div></div>`;
+}
+function progressBar(r){
+  const s = r.steps; const n = [s.ack.done, s.talk.done, s.advice.done||s.advice.skipped, s.decide.done, !!s.review.date].filter(Boolean).length;
+  return `<div class="progress" aria-label="${n} of 5 steps complete">${[0,1,2,3,4].map(i=>`<span class="${i<n?'on':''}"></span>`).join("")}</div>`;
+}
+
+const SECTIONS = [
+  ["strengths","⭐ What I'm great at","Start with your strengths."],
+  ["communication","💬 How I communicate best","e.g. written vs spoken, time to process, directness."],
+  ["environment","🔊 My environment","Noise, light, smells, busy spaces, where you work best."],
+  ["schedule","🗓️ Rota & routine","Shifts, notice of changes, breaks."],
+  ["struggling","🫶 If I'm finding things hard","What you might notice, and what helps."]
+];
+function ePassport(){
+  const pp = P("sam").passport; const editing = S.params.edit;
+  return `
+    <h2 class="h">My adjustment passport</h2>
+    <p class="sub">How I work best, in my own words. It moves with me if my manager or role changes.</p>
+    ${SECTIONS.map(([k,title,hint]) => `
+      <div class="card">
+        <div class="row between"><h4>${title}</h4>
+          ${editing===k ? "" : `<button class="btn small secondary" data-act="editSection" data-k="${k}">Edit</button>`}</div>
+        ${editing===k
+          ? `<label class="sr" for="ed-${k}">${title}</label><p class="hint">${hint}</p><textarea id="ed-${k}">${esc(pp[k].text)}</textarea>
+             <div class="row" style="margin-top:8px"><button class="btn small" data-act="saveSection" data-k="${k}">Save</button><button class="btn small secondary" data-act="cancelEdit">Cancel</button></div>`
+          : `<p>${esc(pp[k].text) || '<span class="sub">Not filled in yet</span>'}</p>`}
+        <label class="toggle" style="padding-bottom:0"><span>${pp[k].share ? "👁️ Shared with my line manager" : "🔒 Only me"}</span>
+          <input type="checkbox" data-act="toggleShare" data-k="${k}" ${pp[k].share?"checked":""}></label>
+      </div>`).join("")}
+
+    <div class="card green">
+      <h4>✅ Agreed adjustments</h4>
+      ${P("sam").agreed.length ? `<ul style="margin:6px 0 0;padding-left:18px">${P("sam").agreed.map(a=>`<li>${esc(a)}</li>`).join("")}</ul>` : `<p class="sub">None yet.</p>`}
+      <p class="hint" style="margin:8px 0 0">Added automatically when a request is agreed.</p>
+    </div>
+
+    <div class="card">
+      <h4>🔐 Diagnosis (optional)</h4>
+      <p class="sub" style="margin:0 0 8px"><b>You never need a diagnosis to ask for support at Jacks.</b> Add one only if you want to, and it stays private unless you switch sharing on.</p>
+      ${editing==="diagnosis"
+        ? `<textarea id="ed-diagnosis" placeholder="Optional">${esc(pp.diagnosis.text)}</textarea><div class="row" style="margin-top:8px"><button class="btn small" data-act="saveSection" data-k="diagnosis">Save</button><button class="btn small secondary" data-act="cancelEdit">Cancel</button></div>`
+        : `<p>${pp.diagnosis.text ? esc(pp.diagnosis.text) : '<span class="sub">Not added</span>'}</p><button class="btn small secondary" data-act="editSection" data-k="diagnosis">${pp.diagnosis.text?"Edit":"Add"}</button>`}
+      <label class="toggle" style="padding-bottom:0"><span>${pp.diagnosis.share ? "👁️ Shared with my line manager" : "🔒 Only me"}</span>
+        <input type="checkbox" data-act="toggleShare" data-k="diagnosis" ${pp.diagnosis.share?"checked":""}></label>
+    </div>`;
+}
+
+function eRequest(){
+  const w = S.wizard || (S.wizard = {step:1, cat:null, barrier:"", helps:[], own:"", talk:"In person", support:false});
+  const steps = 4;
+  const bar = `<div class="progress" aria-label="Step ${w.step} of ${steps}">${[1,2,3,4].map(i=>`<span class="${i<=w.step?'on':''}"></span>`).join("")}</div><p class="hint">Step ${w.step} of ${steps} · you can go back at any time</p>`;
+  if(w.step===1) return `
+    <h2 class="h">What's it about?</h2>${bar}
+    <p class="sub">Pick the closest area. It doesn't need to be perfect.</p>
+    <div class="tiles">${Object.entries(CATS).map(([k,c])=>`
+      <button class="tile" data-act="pickCat" data-k="${k}" aria-pressed="${w.cat===k}"><span class="i" aria-hidden="true">${c.icon}</span><b>${c.name}</b><small>${c.desc}</small></button>`).join("")}</div>
+    <div class="row" style="margin-top:16px"><button class="btn secondary" data-act="cancelWizard">Cancel</button><button class="btn" style="flex:1" data-act="wizNext" ${w.cat?"":"disabled"}>Next</button></div>`;
+  if(w.step===2) return `
+    <h2 class="h">What gets in the way?</h2>${bar}
+    <p class="sub">Describe the barrier in your own words. You don't need to mention a diagnosis.</p>
+    <label class="f" for="barrier">What's happening, and how does it affect you?</label>
+    <textarea id="barrier" placeholder="e.g. When the rota changes at short notice I…">${esc(w.barrier)}</textarea>
+    <p class="hint" style="margin-top:8px">Not sure how to put it? Tap a starter:</p>
+    <div class="seg">${["It's hard for me when…","I work best when…","I'm worried that…"].map(s=>`<button data-act="starter" data-s="${esc(s)}">${esc(s)}</button>`).join("")}</div>
+    <div class="row" style="margin-top:16px"><button class="btn secondary" data-act="wizBack">Back</button><button class="btn" style="flex:1" data-act="wizNext">Next</button></div>`;
+  if(w.step===3){
+    const ideas = LIBRARY.filter(l=>l.cat===w.cat);
+    return `
+    <h2 class="h">What might help?</h2>${bar}
+    <p class="sub">Choose any that sound useful, or add your own idea. It's fine to say \"I'm not sure\". We can work it out together.</p>
+    ${ideas.map(l=>`<label class="check"><input type="checkbox" data-act="toggleHelp" data-t="${esc(l.t)}" ${w.helps.includes(l.t)?"checked":""}><span><b>${esc(l.t)}</b><br><small class="sub">${esc(l.ex)}</small></span></label>`).join("")}
+    <label class="check"><input type="checkbox" data-act="toggleHelp" data-t="I'm not sure — let's talk" ${w.helps.includes("I'm not sure — let's talk")?"checked":""}><span><b>I'm not sure — let's talk</b></span></label>
+    <label class="f" for="own">Your own idea (optional)</label>
+    <input type="text" id="own" value="${esc(w.own)}" placeholder="Anything else that would help">
+    <div class="row" style="margin-top:16px"><button class="btn secondary" data-act="wizBack">Back</button><button class="btn" style="flex:1" data-act="wizNext">Next</button></div>`;
+  }
+  return `
+    <h2 class="h">How would you like to talk about it?</h2>${bar}
+    <p class="sub">Niamh will arrange a conversation in the way that suits you.</p>
+    <div class="seg" role="group" aria-label="Conversation format">${["In person","In person, with a written summary afterwards","Video call","In writing only"].map(o=>`<button data-act="pickTalk" data-v="${esc(o)}" aria-pressed="${w.talk===o}">${esc(o)}</button>`).join("")}</div>
+    <label class="toggle" style="margin-top:8px"><span>I'd like to bring a support person (colleague, union rep or ND Network member)</span><input type="checkbox" data-act="toggleSupport" ${w.support?"checked":""}></label>
+    <div class="card" style="margin-top:12px">
+      <h4>Check before sending</h4>
+      <p><b>${CATS[w.cat].icon} ${CATS[w.cat].name}</b></p>
+      <p class="sub" style="margin:0 0 6px">${esc(w.barrier) || "<i>No description</i>"}</p>
+      <p style="margin:0">${[...w.helps, w.own].filter(Boolean).map(h=>`<span class="chip" style="margin:2px 2px 0 0">${esc(h)}</span>`).join("") || '<span class="sub">No suggestions chosen</span>'}</p>
+    </div>
+    <p class="hint">Niamh aims to acknowledge within <b>${TARGETS.ack} working days</b> (by ${fmt(addWorkingDays(today(),TARGETS.ack))}).</p>
+    <div class="row" style="margin-top:12px"><button class="btn secondary" data-act="wizBack">Back</button><button class="btn" style="flex:1" data-act="submitRequest">Send to Niamh</button></div>`;
+}
+
+function eRequests(){
+  const mine = S.requests.filter(r=>r.who==="sam");
+  return `
+    <h2 class="h">My requests</h2>
+    <p class="sub">Track where each request is and what happens next.</p>
+    ${mine.length ? mine.map(r=>{ const st=statusOf(r); return `
+      <button class="list-btn" data-go="request-detail" data-id="${r.id}">
+        <div class="row between"><b>${CATS[r.cat].icon} ${esc(r.title)}</b><span class="chip ${st.cls}">${st.label}</span></div>
+        ${progressBar(r)}<div class="hint" style="margin:0">Sent ${fmt(r.submitted)}</div>
+      </button>`;}).join("") : `<div class="card"><p>No requests yet.</p></div>`}
+    <button class="btn block" data-act="startRequest">＋ Ask for an adjustment</button>`;
+}
+
+function stepsList(r, forManager){
+  const s = r.steps, sub = new Date(r.submitted);
+  const items = [
+    {k:"ack", t:"Acknowledged", done:s.ack.done, d:s.ack.done?`Done ${fmt(s.ack.date)}`:`Expected by ${fmt(addWorkingDays(sub,TARGETS.ack))}`},
+    {k:"talk", t:"Conversation", done:s.talk.done, d:s.talk.done?`Done ${fmt(s.talk.date)}`:s.talk.booked?`Booked for ${fmt(s.talk.booked)} · ${esc(r.talk)}`:`Expected by ${fmt(addWorkingDays(sub,TARGETS.talk))}`},
+    {k:"advice", t:"Advice (if needed)", done:s.advice.done||s.advice.skipped, d:s.advice.done?`Occupational Health referral made ${fmt(s.advice.date)}`:s.advice.skipped?"Not needed":"Only if useful, e.g. Occupational Health"},
+    {k:"decide", t:"Decision", done:s.decide.done, d:s.decide.done?`${statusOf(r).label} · ${fmt(s.decide.date)}`:`Expected by ${fmt(addWorkingDays(sub,TARGETS.decide))}`},
+    {k:"review", t:"Review", done:!!s.review.date, d:s.review.date?`Check-in on ${fmt(s.review.date)}`:"A date to check it's still working"}
+  ];
+  const firstOpen = items.findIndex(i=>!i.done);
+  return `<ol class="steps">${items.map((i,idx)=>`
+    <li class="${i.done?'done':idx===firstOpen?'now':''}"><span class="dot">${i.done?"✓":idx+1}</span>
+      <div class="st">${i.t}</div><div class="sd">${i.d}</div></li>`).join("")}</ol>`;
+}
+
+function eRequestDetail(){
+  const r = R(S.params.id) || S.requests.find(x=>x.who==="sam");
+  if(!r) return `<p>Request not found.</p>`;
+  const st = statusOf(r);
+  return `
+    <div class="row between"><h2 class="h">${esc(r.title)}</h2></div>
+    <p class="sub"><span class="chip ${st.cls}">${st.label}</span> · sent ${fmt(r.submitted)}</p>
+    <div class="card">${stepsList(r)}</div>
+    ${r.steps.decide.done ? `<div class="card ${st.cls}"><h4>Decision</h4><p>${esc(r.steps.decide.note)}</p></div>` : ""}
+    <h3 class="h">Updates</h3>
+    ${r.msgs.length ? r.msgs.slice().reverse().map(m=>`<div class="msg"><div class="who">${esc(m.from)} · ${fmt(m.date)}</div>${esc(m.text)}</div>`).join("") : `<p class="sub">No updates yet.</p>`}
+    <h3 class="h">What I asked for</h3>
+    <div class="card"><p>${esc(r.barrier)}</p><p>${r.helps.map(h=>`<span class="chip" style="margin:2px 2px 0 0">${esc(h)}</span>`).join("")}</p></div>
+    <p class="hint">Not happy with how this is going? You can talk to HR or the ND Network at any time, in confidence.</p>`;
+}
+
+function eSupport(){
+  return `
+    <h2 class="h">Support & your rights</h2>
+    <p class="sub">Plain-English information. Tap a heading to open it.</p>
+    <details class="learn"><summary>⚖️ Your rights at work (Ireland)</summary>
+      <p>Under the <b>Employment Equality Acts 1998–2015</b>, employers must take <b>"appropriate measures"</b> (reasonable accommodation) so a disabled person can do their job, unless it would be a disproportionate burden. Autism, ADHD, dyslexia, dyspraxia and similar conditions are covered by the law's broad definition of disability.</p>
+      <p>The Supreme Court (<i>Nano Nagle v Daly</i>, 2019) said this can include changing how tasks are shared, and that employers should talk with the employee.</p></details>
+    <details class="learn"><summary>🪪 Do I need a diagnosis?</summary>
+      <p><b>No.</b> At Jacks you can ask for an adjustment based on what you need. Many people are undiagnosed, waiting for assessment, or prefer not to share. That's your choice.</p></details>
+    <details class="learn"><summary>🗣️ What if I'm not happy with a decision?</summary>
+      <p>Talk to HR or bring a support person to a follow-up meeting. You can also use the grievance procedure. Externally, the <b>Workplace Relations Commission (WRC)</b> handles equality complaints, and the <b>Irish Human Rights and Equality Commission (IHREC)</b> gives information.</p></details>
+    <h3 class="h">Who can help</h3>
+    <div class="card"><h4>👥 Jacks Neurodiversity Network</h4><p class="sub" style="margin:0">Peer group led by neurodivergent colleagues. Meets monthly, plus a group chat.</p></div>
+    <div class="card"><h4>🧑‍💼 HR — Ciara (Wellbeing Lead)</h4><p class="sub" style="margin:0">Confidential. Book by message, phone or drop-in on Tuesdays.</p></div>
+    <div class="card"><h4>📞 Employee Assistance Programme</h4><p class="sub" style="margin:0">Free, confidential counselling 24/7.</p></div>
+    <div class="card"><h4>🌍 External organisations</h4><p class="sub" style="margin:0">AsIAm (autism), ADHD Ireland, Dyslexia Ireland, Dyspraxia/DCD Ireland.</p></div>`;
+}
+
+/* ---------- Manager screens ---------- */
+function mHome(){
+  const open = S.requests.filter(r=>!r.steps.decide.done).sort((a,b)=>nextDue(a).due-nextDue(b).due);
+  const reviews = S.requests.filter(r=>r.steps.decide.done && r.steps.review.date).sort((a,b)=>new Date(a.steps.review.date)-new Date(b.steps.review.date));
+  const overdue = open.filter(r=>nextDue(r).due < today()).length;
+  return `
+    <h2 class="h">Good morning, Niamh</h2>
+    <p class="sub">${open.length} open request${open.length!==1?"s":""}${overdue?` · <b style="color:var(--red)">${overdue} overdue</b>`:""}</p>
+    ${S.flag ? `<div class="card gold"><h4>💬 Private chat requested</h4><p style="margin:0 0 8px">Sam would like a private check-in. No details shared.</p><button class="btn small" data-act="clearFlag">Offer a time</button></div>` : ""}
+    <h3 class="h">Needs your attention</h3>
+    ${open.length ? open.map(r=>`
+      <button class="list-btn" data-go="request" data-id="${r.id}">
+        <div class="person"><span class="avatar">${P(r.who).initials}</span>
+          <div style="flex:1"><b>${esc(P(r.who).name)}</b><div class="hint" style="margin:0">${CATS[r.cat].icon} ${esc(r.title)}</div></div></div>
+        <div style="margin-top:8px">${dueChip(r)}</div>
+      </button>`).join("") : `<div class="card green"><p style="margin:0">All caught up. ✅</p></div>`}
+    <h3 class="h">Upcoming reviews</h3>
+    ${reviews.length ? reviews.map(r=>`<button class="list-btn" data-go="request" data-id="${r.id}"><div class="row between"><span><b>${esc(P(r.who).name)}</b> · ${esc(r.title)}</span></div><div class="hint" style="margin:4px 0 0">Review on ${fmt(r.steps.review.date)}</div></button>`).join("") : `<p class="sub">None scheduled.</p>`}
+    <div class="card gold" style="margin-top:6px"><h4>💡 Tip of the week</h4><p style="margin:0">Say exactly what you mean. "Can you have a look at bay 2?" can be read many ways; "Please restock bay 2 by 11:00" can't.</p></div>`;
+}
+
+function mRequest(){
+  const r = R(S.params.id); if(!r) return `<p>Not found.</p>`;
+  const p = P(r.who), s = r.steps;
+  const draft = S.params.draft || {};
+  let action = "";
+  if(!s.ack.done){
+    action = `<div class="card gold"><h4>Step 1 · Acknowledge</h4>
+      <p class="hint">Aim: within ${TARGETS.ack} working days. A quick reply reduces anxiety.</p>
+      <label class="f" for="ackMsg">Message to ${esc(p.name.split(" ")[0])}</label>
+      <textarea id="ackMsg">Thanks ${esc(p.name.split(" ")[0])}, I've got your request about "${esc(r.title.toLowerCase())}". I'd like to talk it through with you — I'll set that up the way you asked (${esc(r.talk.toLowerCase())}).</textarea>
+      <button class="btn block" style="margin-top:10px" data-act="ack">Send acknowledgement</button></div>`;
+  } else if(!s.talk.done){
+    action = `<div class="card gold"><h4>Step 2 · Talk together</h4>
+      <p class="hint">${esc(p.name.split(" ")[0])} asked for: <b>${esc(r.talk)}</b>${r.support?" · bringing a support person":""}</p>
+      ${s.talk.booked ? `<p>📅 Booked for <b>${fmt(s.talk.booked)}</b></p>` : `
+        <label class="f" for="talkDate">Date</label><input type="date" id="talkDate" value="${addWorkingDays(today(),2).toISOString().slice(0,10)}">
+        <button class="btn block secondary" style="margin-top:10px" data-act="bookTalk">Book conversation</button>`}
+      <details class="learn" style="margin-top:10px"><summary>Helpful questions to ask</summary>
+        <p>• What's working well for you at the moment?<br>• When is it hardest? What does that look like?<br>• What have you tried, here or elsewhere, that helped?<br>• What would a good week look like?<br>• How would you like me to check in?</p>
+        <p><b>Avoid:</b> asking about diagnosis, or guessing what someone "has".</p></details>
+      <div class="law">⚖️ <b>Nano Nagle v Daly (2019):</b> the Supreme Court said prudent employers should engage with the employee when considering accommodation.</div>
+      <label class="f" for="talkNotes">Agreed notes (shared with ${esc(p.name.split(" ")[0])})</label>
+      <textarea id="talkNotes" placeholder="What you discussed and agreed to explore"></textarea>
+      <button class="btn block" style="margin-top:10px" data-act="talkDone">Mark conversation done</button></div>`;
+  } else if(!(s.advice.done || s.advice.skipped)){
+    action = `<div class="card gold"><h4>Step 3 · Get advice if you need it</h4>
+      <p>Is Occupational Health or specialist advice needed to decide well?</p>
+      <div class="law">⚠️ <b>Don't research the condition and assume.</b> In <i>Dunne v Sky Handling</i> (WRC, 2019, €15,000) a manager googled "dyspraxia" and dismissed an employee without meeting him or getting expert advice.</div>
+      <div class="row" style="margin-top:10px"><button class="btn secondary" style="flex:1" data-act="adviceSkip">Not needed</button><button class="btn" style="flex:1" data-act="adviceRefer">Refer to OH</button></div></div>`;
+  } else if(!s.decide.done){
+    const o = draft.outcome;
+    action = `<div class="card gold"><h4>Step 4 · Decide</h4>
+      <div class="seg" role="group" aria-label="Decision">${[["approved","Agree"],["trial","Agree as a trial"],["alternative","Offer an alternative"],["declined","Can't agree"]].map(([k,l])=>`<button data-act="pickOutcome" data-v="${k}" aria-pressed="${o===k}">${l}</button>`).join("")}</div>
+      ${o==="declined" ? `
+        <div class="card red" style="margin-top:12px"><h4>Before declining</h4>
+          <p>Under <b>s.16(3) Employment Equality Acts</b>, you can only refuse if the measure would be a <b>disproportionate burden</b>. Confirm you have considered:</p>
+          ${["The actual financial and other costs","Jacks' size and financial resources","Public funding available (e.g. Workplace Equipment Adaptation Grant)","Alternative or partial adjustments","Advice from HR / Occupational Health"].map((c,i)=>`<label class="check"><input type="checkbox" class="dpb" data-i="${i}"><span>${c}</span></label>`).join("")}
+          <div class="law">📌 <b>O'Riordan v Omniplex (Labour Court, 2026):</b> no persuasive evidence that low-cost roster changes were a disproportionate burden. Award increased to €29,000.</div>
+          <p class="hint">HR must review all declines before they are sent.</p></div>` : ""}
+      ${o ? `<label class="f" for="decNote">${o==="declined"?"Reasons (shared with the employee)":"What's been agreed (shared with the employee)"}</label>
+        <textarea id="decNote">${o==="approved"||o==="trial" ? esc("Agreed: " + r.helps.join("; ") + ".") : ""}</textarea>
+        <label class="f" for="revDate">Review date</label>
+        <input type="date" id="revDate" value="${addWorkingDays(today(),o==="trial"?20:40).toISOString().slice(0,10)}">
+        <button class="btn block ${o==="declined"?"danger":""}" style="margin-top:12px" data-act="decide">${o==="declined"?"Send to HR for review":"Confirm decision"}</button>` : ""}
+    </div>`;
+  } else {
+    action = `<div class="card green"><h4>Decision: ${statusOf(r).label}</h4><p>${esc(s.decide.note)}</p>
+      <p class="hint">Review on ${fmt(s.review.date)}. Needs can change, so check it's still working.</p>
+      <button class="btn small secondary" data-act="reviewDone">Log review: still working ✓</button></div>`;
+  }
+  return `
+    <div class="person" style="margin-bottom:10px"><span class="avatar">${p.initials}</span><div><b>${esc(p.name)}</b><div class="hint" style="margin:0">${esc(p.role)}</div></div></div>
+    <h2 class="h">${CATS[r.cat].icon} ${esc(r.title)}</h2>
+    <p class="sub">Sent ${fmt(r.submitted)} · ${dueChip(r) || '<span class="chip green">On track</span>'}</p>
+    ${action}
+    <h3 class="h">In ${esc(p.name.split(" ")[0])}'s words</h3>
+    <div class="card"><p>${esc(r.barrier)}</p><p style="margin:0">${r.helps.map(h=>`<span class="chip" style="margin:2px 2px 0 0">${esc(h)}</span>`).join("")}</p></div>
+    ${p.passport && p.passport.communication && p.passport.communication.share ? `<div class="card"><h4>💬 How ${esc(p.name.split(" ")[0])} communicates best</h4><p style="margin:0">${esc(p.passport.communication.text)}</p></div>` : ""}
+    <h3 class="h">Progress</h3>
+    <div class="card">${stepsList(r,true)}</div>`;
+}
+
+function mTeam(){
+  return `
+    <h2 class="h">My team · Line 2</h2>
+    <p class="sub">You only see what each person has chosen to share.</p>
+    ${Object.entries(S.people).map(([id,p])=>{
+      const open = S.requests.filter(r=>r.who===id && !r.steps.decide.done).length;
+      return p.passport ? `
+      <button class="list-btn" data-go="member" data-id="${id}">
+        <div class="person"><span class="avatar">${p.initials}</span><div style="flex:1"><b>${esc(p.name)}</b><div class="hint" style="margin:0">${esc(p.role)}</div></div></div>
+        <div style="margin-top:8px"><span class="chip green">Passport shared</span> ${p.agreed.length?`<span class="chip">${p.agreed.length} agreed</span>`:""} ${open?`<span class="chip gold">${open} open</span>`:""}</div>
+      </button>` : `
+      <div class="card">
+        <div class="person"><span class="avatar">${p.initials}</span><div style="flex:1"><b>${esc(p.name)}</b><div class="hint" style="margin:0">${esc(p.role)}</div></div></div>
+        <p class="hint" style="margin:8px 0">New starters are offered a passport at induction. It's optional.</p>
+        ${S.invited ? `<span class="chip green">Invitation sent ✓</span>` : `<button class="btn small secondary" data-act="invite">Invite to create a passport</button>`}
+      </div>`;}).join("")}`;
+}
+
+function mMember(){
+  const p = P(S.params.id); if(!p) return "";
+  const shown = SECTIONS.concat([["diagnosis","🔐 Diagnosis",""]]).filter(([k])=>p.passport[k] && p.passport[k].share);
+  return `
+    <div class="person" style="margin-bottom:12px"><span class="avatar">${p.initials}</span><div><h2 class="h" style="margin:0">${esc(p.name)}</h2><div class="hint" style="margin:0">${esc(p.role)}</div></div></div>
+    <p class="sub">How to work well with ${esc(p.name.split(" ")[0])}, in their words.</p>
+    ${shown.map(([k,t])=>`<div class="card"><h4>${t}</h4><p style="margin:0">${esc(p.passport[k].text)}</p></div>`).join("")}
+    ${Object.keys(p.passport).length > shown.length ? `<p class="hint">🔒 Some sections are private.</p>` : ""}
+    <div class="card green"><h4>✅ Agreed adjustments</h4>${p.agreed.length?`<ul style="margin:6px 0 0;padding-left:18px">${p.agreed.map(a=>`<li>${esc(a)}</li>`).join("")}</ul>`:'<p class="sub">None</p>'}</div>`;
+}
+
+function mLibrary(){
+  const q = (S.params.q||"").toLowerCase(), c = S.params.cat||"all";
+  const items = LIBRARY.filter(l=>(c==="all"||l.cat===c) && (!q || (l.t+l.helps+l.ex).toLowerCase().includes(q)));
+  return `
+    <h2 class="h">Adjustment library</h2>
+    <p class="sub">Ideas organised by barrier, not diagnosis. Most cost little or nothing.</p>
+    <label class="sr" for="libq">Search adjustments</label>
+    <input type="search" id="libq" placeholder="Search e.g. noise, rota, reading" value="${esc(S.params.q||"")}">
+    <div class="seg" style="margin:10px 0 14px">
+      <button data-act="libCat" data-v="all" aria-pressed="${c==="all"}">All</button>
+      ${Object.entries(CATS).map(([k,v])=>`<button data-act="libCat" data-v="${k}" aria-pressed="${c===k}">${v.icon} ${v.name}</button>`).join("")}
+    </div>
+    <div id="libList">${libCards(items)}</div>`;
+}
+function libCards(items){
+  return items.length ? items.map(l=>`
+    <div class="card"><div class="row between" style="align-items:flex-start"><h4>${esc(l.t)}</h4><span class="chip ${l.cost==="€0"?"green":""}">${esc(l.cost)}</span></div>
+      <p class="hint" style="margin:0 0 4px">Helps with: ${esc(l.helps)}</p>
+      <p style="margin:0;font-size:.92em">🏭 ${esc(l.ex)}</p></div>`).join("") : `<p class="sub">No matches.</p>`;
+}
+
+function mLearn(){
+  const cards = [
+    ["🧠 Neurodiversity in 60 seconds","Neurodiversity means natural variation in how human brains work. Around 15–20% of people are thought to be neurodivergent: autistic, ADHD, dyslexic, dyspraxic, Tourette's and more. These are lifelong neurodevelopmental differences with strong genetic roots, affecting things like attention, sensory processing, communication and executive function. Many people have a \"spiky profile\": big strengths alongside real difficulties.","Singer (2017); Doyle (2020)"],
+    ["🔍 Ask, don't assume","Two people with the same diagnosis can need completely different things. Ask the person what helps. Never google a condition and decide what someone can or can't do.","Dunne v Sky Handling Partner Ltd, ADJ-00017364 (WRC, 2019)"],
+    ["⏱️ Speed matters","Long silences after a request cause anxiety and can be discrimination in their own right. Acknowledge quickly, talk soon, decide clearly.","O'Riordan v Omniplex (WRC 2024; Labour Court 2026)"],
+    ["⭐ Careful with \"superpower\"","Meant kindly, but it can dismiss real difficulties and make people feel they have to be exceptional to be accepted. Talk about strengths and support together.","Benson and Colley (2023); Doyle and McDowall (2022)"],
+    ["🔁 Communication goes both ways","The \"double empathy problem\": misunderstandings between autistic and non-autistic people come from both sides, not a deficit in one person. Being clear and direct helps everyone.","Milton (2012)"],
+    ["🎭 Masking","Many neurodivergent people hide their traits to fit in. It's exhausting and linked to burnout and poor mental health. A team where people don't need to mask is safer and more productive.","Pearson and Rose (2021); Hull et al. (2017)"],
+    ["⚖️ Your legal duty","Employment Equality Acts 1998–2015 s.16: provide appropriate measures unless they're a disproportionate burden, taking cost, company resources and available grants into account. Applies to recruitment too.","Employment Equality Acts; Nano Nagle v Daly [2019] IESC 63"]
+  ];
+  return `
+    <h2 class="h">Learn in 2 minutes</h2>
+    <p class="sub">Short cards for busy supervisors. Tap to open.</p>
+    ${cards.map(([t,b,s])=>`<details class="learn"><summary>${t}</summary><p>${b}</p><p class="src">Source: ${s}</p></details>`).join("")}`;
+}
+
+/* ---------- Settings (both roles) ---------- */
+function settingsScreen(){
+  const st = S.settings;
+  return `
+    <h2 class="h">Make it work for you</h2>
+    <p class="sub">Changes apply straight away and only affect you.</p>
+    <div class="card">
+      <label class="f" style="margin-top:0">Text size</label>
+      <div class="seg">${["Standard","Large","Extra large"].map((l,i)=>`<button data-act="set" data-k="size" data-v="${i}" aria-pressed="${st.size===i}">${l}</button>`).join("")}</div>
+      <label class="f">Font</label>
+      <div class="seg">${[["atkinson","Atkinson Hyperlegible"],["lexend","Lexend"],["system","System"]].map(([k,l])=>`<button data-act="set" data-k="font" data-v="${k}" aria-pressed="${st.font===k}">${l}</button>`).join("")}</div>
+      <label class="f">Colours</label>
+      <div class="seg">${[["light","Light"],["dark","Dark"],["contrast","High contrast"]].map(([k,l])=>`<button data-act="set" data-k="theme" data-v="${k}" aria-pressed="${st.theme===k}">${l}</button>`).join("")}</div>
+    </div>
+    <div class="card">
+      <label class="toggle"><span><b>Extra spacing</b><br><small class="sub">More space between lines and words</small></span><input type="checkbox" data-act="setBool" data-k="spacing" ${st.spacing?"checked":""}></label>
+      <label class="toggle"><span><b>Animations</b><br><small class="sub">Turn off for a calmer screen</small></span><input type="checkbox" data-act="setBool" data-k="motion" ${st.motion?"checked":""}></label>
+      <label class="toggle"><span><b>Daily summary instead of instant alerts</b><br><small class="sub">One message at a time you choose</small></span><input type="checkbox" data-act="setBool" data-k="digest" ${st.digest?"checked":""}></label>
+    </div>`;
+}
+
+/* ---------- Actions ---------- */
+function toast(msg){
+  const h = document.getElementById("toastHost");
+  h.innerHTML = `<div class="toast">${esc(msg)}</div>`;
+  clearTimeout(toast.t); toast.t = setTimeout(()=>h.innerHTML="", 2600);
+}
+function msgTo(r, text){ r.msgs.push({from:"Niamh Kelly", date:iso(today()), text}); }
+function addAgreed(r){
+  const p = P(r.who);
+  r.helps.filter(h=>!h.startsWith("I'm not sure")).forEach(h=>{ if(!p.agreed.includes(h)) p.agreed.push(h); });
+}
+
+const ACTIONS = {
+  startRequest(){ S.wizard = null; S.role="employee"; go("request"); },
+  cancelWizard(){ S.wizard = null; go("home"); },
+  pickCat(el){ S.wizard.cat = el.dataset.k; S.wizard.helps = []; render(); },
+  wizNext(){ captureWizard(); S.wizard.step++; render(); },
+  wizBack(){ captureWizard(); if(S.wizard.step>1) S.wizard.step--; render(); },
+  starter(el){ const t = document.getElementById("barrier"); t.value = (t.value ? t.value + " " : "") + el.dataset.s + " "; t.focus(); },
+  toggleHelp(el){ const t = el.dataset.t, h = S.wizard.helps; el.checked ? h.push(t) : h.splice(h.indexOf(t),1); },
+  pickTalk(el){ S.wizard.talk = el.dataset.v; render(); },
+  toggleSupport(el){ S.wizard.support = el.checked; },
+  submitRequest(){
+    const w = S.wizard; const helps = [...w.helps]; if(w.own.trim()) helps.push(w.own.trim());
+    const r = { id:"r"+Date.now(), who:"sam", cat:w.cat, title:(helps[0] && !helps[0].startsWith("I'm not sure")) ? helps[0] : CATS[w.cat].name + " support",
+      barrier:w.barrier.trim() || "(No description given)", helps, talk:w.talk, support:w.support, submitted:iso(today()),
+      steps:{ack:{},talk:{},advice:{},decide:{},review:{}}, msgs:[] };
+    S.requests.push(r); S.wizard = null; save(); toast("Sent to Niamh ✓"); go("request-detail",{id:r.id});
+  },
+  checkin(el){ S.checkin = el.dataset.v; save(); render(); },
+  shareCheckin(){ S.flag = true; save(); toast("Niamh has been asked for a private chat. No details shared."); },
+  clearFlag(){ S.flag = false; save(); toast("Message sent to Sam offering times"); render(); },
+  editSection(el){ S.params.edit = el.dataset.k; render(); document.getElementById("ed-"+el.dataset.k)?.focus(); },
+  cancelEdit(){ S.params.edit = null; render(); },
+  saveSection(el){ const k = el.dataset.k; P("sam").passport[k].text = document.getElementById("ed-"+k).value.trim(); S.params.edit=null; save(); toast("Saved"); render(); },
+  toggleShare(el){ P("sam").passport[el.dataset.k].share = el.checked; save(); toast(el.checked ? "Now shared with your line manager" : "Now private"); render(); },
+  ack(){ const r = R(S.params.id); r.steps.ack = {done:true, date:iso(today())}; msgTo(r, document.getElementById("ackMsg").value); save(); toast("Acknowledgement sent"); render(); },
+  bookTalk(){ const r = R(S.params.id); const d = document.getElementById("talkDate").value; r.steps.talk.booked = iso(d ? new Date(d+"T10:00") : addWorkingDays(today(),2)); msgTo(r, `I've booked our conversation for ${fmt(r.steps.talk.booked)} (${r.talk.toLowerCase()}).`); save(); toast("Conversation booked"); render(); },
+  talkDone(){ const r = R(S.params.id); const n = document.getElementById("talkNotes").value.trim(); r.steps.talk = {...r.steps.talk, done:true, date:iso(today()), booked:r.steps.talk.booked||iso(today())}; if(n) msgTo(r, "Summary of our conversation: " + n); save(); toast("Conversation recorded"); render(); },
+  adviceSkip(){ const r = R(S.params.id); r.steps.advice = {skipped:true, date:iso(today())}; save(); render(); },
+  adviceRefer(){ const r = R(S.params.id); r.steps.advice = {done:true, date:iso(today())}; msgTo(r, "With your agreement, I've asked Occupational Health for advice so we get this right."); save(); toast("Occupational Health referral sent"); render(); },
+  pickOutcome(el){ S.params.draft = {outcome:el.dataset.v}; render(); },
+  decide(){
+    const r = R(S.params.id), o = S.params.draft.outcome;
+    if(o==="declined"){
+      const all = [...document.querySelectorAll(".dpb")].every(x=>x.checked);
+      if(!all){ toast("Please confirm every point before declining"); return; }
+      if(!document.getElementById("decNote").value.trim()){ toast("Please explain your reasons"); return; }
+      toast("Sent to HR for review. The employee is told a decision is pending."); return;
+    }
+    const note = document.getElementById("decNote").value.trim() || "Agreed.";
+    const rev = document.getElementById("revDate").value;
+    r.steps.decide = {done:true, outcome:o, note, date:iso(today())};
+    r.steps.review = {date:iso(rev ? new Date(rev+"T10:00") : addWorkingDays(today(),40))};
+    if(o==="approved"||o==="trial") addAgreed(r);
+    msgTo(r, note + ` We'll review on ${fmt(r.steps.review.date)}.`);
+    S.params.draft = {}; save(); toast("Decision shared"); render();
+  },
+  reviewDone(){ const r = R(S.params.id); r.steps.review.date = iso(addWorkingDays(today(),60)); msgTo(r,"Review done. Still working well. Next check-in in about 3 months."); save(); toast("Review logged"); render(); },
+  invite(){ S.invited = true; save(); toast("Invitation sent to Priya"); render(); },
+  libCat(el){ S.params.cat = el.dataset.v; render(); },
+  set(el){ const k = el.dataset.k; S.settings[k] = k==="size" ? +el.dataset.v : el.dataset.v; save(); render(); },
+  setBool(el){ S.settings[el.dataset.k] = el.checked; save(); render(); }
+};
+function captureWizard(){
+  const b = document.getElementById("barrier"); if(b) S.wizard.barrier = b.value;
+  const o = document.getElementById("own"); if(o) S.wizard.own = o.value;
+}
+
+app.addEventListener("click", e => {
+  const g = e.target.closest("[data-go]");
+  if(g){ const params = g.dataset.id ? {id:g.dataset.id} : {}; if(g.dataset.go==="request" && S.role==="employee"){ ACTIONS.startRequest(); return; } go(g.dataset.go, params); return; }
+  const a = e.target.closest("[data-act]");
+  if(a && a.tagName !== "INPUT" && ACTIONS[a.dataset.act]) ACTIONS[a.dataset.act](a);
+});
+app.addEventListener("change", e => {
+  const a = e.target.closest("input[data-act]");
+  if(a && ACTIONS[a.dataset.act]) ACTIONS[a.dataset.act](a);
+});
+app.addEventListener("input", e => {
+  if(e.target.id === "libq"){
+    S.params.q = e.target.value;
+    const q = S.params.q.toLowerCase(), c = S.params.cat||"all";
+    document.getElementById("libList").innerHTML = libCards(LIBRARY.filter(l=>(c==="all"||l.cat===c) && (!q || (l.t+l.helps+l.ex).toLowerCase().includes(q))));
+  }
+});
+
+document.getElementById("roleEmp").onclick = () => { S.role="employee"; save(); render(); };
+document.getElementById("roleMgr").onclick = () => { S.role="manager"; save(); render(); };
+document.getElementById("toggleNotes").onclick = () => { S.showNotes = !S.showNotes; save(); render(); };
+document.getElementById("resetDemo").onclick = () => { if(confirm("Reset the demo to its starting data?")){ S = seed(); save(); render(); toast("Demo reset"); } };
+
+render();
+</script>
+</body>
+</html>
