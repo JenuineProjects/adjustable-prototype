@@ -152,6 +152,41 @@ details.learn .src{font-size:.8em;color:var(--muted);margin-top:8px}
 @keyframes fade{from{opacity:.4}to{opacity:1}}
 @media (prefers-reduced-motion: reduce){.app.motion .screen{animation:none}}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.ext-links{list-style:none;margin:0 0 8px;padding:0}
+.ext-group{margin:10px 0 2px;font-size:.82em;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.ext-links li{padding:6px 0;border-top:1px solid var(--line)}
+.ext-links li:first-child{border-top:0}
+.ext-links a{color:var(--accent);font-weight:700;text-decoration:underline;text-underline-offset:2px}
+.ext-links a:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:4px}
+
+/* ---------- First-visit tutorial ---------- */
+.tour{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(14,17,34,.62)}
+.tour[hidden]{display:none}
+.tour-card{width:420px;max-width:100%;max-height:calc(100vh - 32px);overflow-y:auto;background:var(--page-card);color:var(--page-text);border-radius:22px;padding:26px 24px 20px;box-shadow:0 24px 60px rgba(0,0,0,.35);touch-action:pan-y}
+.tour-card:focus{outline:none}
+.tour-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.tour-count{font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--page-muted)}
+.tour-skip{border:0;background:transparent;color:var(--page-muted);font:inherit;font-size:.9rem;text-decoration:underline;cursor:pointer;padding:6px}
+.tour-icon{font-size:2.6rem;line-height:1;margin:10px 0 12px}
+.tour-slide h2{margin:0 0 10px;font-size:1.35rem;line-height:1.25}
+.tour-slide p{margin:0 0 10px}
+.tour-slide ul{margin:0 0 10px;padding-left:20px}
+.tour-slide li{margin-bottom:6px}
+.tour-slide .small{font-size:.85rem;color:var(--page-muted)}
+.tour-slide.anim{animation:tourIn .22s ease-out}
+@keyframes tourIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.tour-slide.anim{animation:none}}
+.tour-dots{display:flex;justify-content:center;gap:8px;margin:16px 0 14px}
+.tour-dots button{width:12px;height:12px;border-radius:50%;border:2px solid var(--brand-navy);background:transparent;padding:0;cursor:pointer}
+.tour-dots button[aria-current="step"]{background:var(--brand-navy)}
+.tour-nav{display:flex;gap:10px}
+.tour-nav button{flex:1;border-radius:12px;padding:11px 14px;font:inherit;font-weight:700;cursor:pointer}
+.tour-back{border:2px solid var(--page-line);background:transparent;color:var(--page-text)}
+.tour-next{border:2px solid var(--brand-navy);background:var(--brand-navy);color:#fff}
+.tour-back:disabled{opacity:.4;cursor:default}
+.tour button:focus-visible{outline:3px solid var(--brand-gold);outline-offset:2px}
+.tour-hint{text-align:center;font-size:.78rem;color:var(--page-muted);margin:10px 0 0}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tour-dots button{border-color:#9AACFF}:root:not([data-theme="light"]) .tour-dots button[aria-current="step"]{background:#9AACFF}}
 </style>
 </head>
 <body>
@@ -169,6 +204,7 @@ details.learn .src{font-size:.8em;color:var(--muted);margin-top:8px}
       <button data-role="employee" aria-pressed="true">Employee (Sam)</button>
       <button data-role="manager" aria-pressed="false">Line manager (Niamh)</button>
     </div>
+    <button class="ghost" data-tour>How it works</button>
     <button class="ghost" id="toggleNotes">Hide notes</button>
     <button class="ghost" data-reset>Reset demo</button>
   </div>
@@ -184,7 +220,7 @@ details.learn .src{font-size:.8em;color:var(--muted);margin-top:8px}
       <li>Tap around. It works like a real app, and what you do in one view shows up in the other.</li>
       <li>Under the phone, <b>notes</b> explain each screen and the research behind it.</li>
     </ol>
-    <p class="small">Prototype for a university group project. The company, people and data are fictional. Anything you enter stays on your device.</p>
+    <p class="small">Prototype for a college group project. The company, people and data are fictional. Anything you enter stays on your device.</p>
     <a class="try-btn" href="#try">Try the app ↓</a>
   </section>
   <div class="phone-wrap" id="try">
@@ -193,6 +229,7 @@ details.learn .src{font-size:.8em;color:var(--muted);margin-top:8px}
         <button data-role="employee" aria-pressed="true">Employee (Sam)</button>
         <button data-role="manager" aria-pressed="false">Line manager (Niamh)</button>
       </div>
+      <button class="ghost" data-tour>How it works</button>
       <button class="ghost" data-reset>Reset</button>
     </div>
     <div class="phone"><div class="app motion" id="app" aria-live="polite"></div></div>
@@ -200,6 +237,22 @@ details.learn .src{font-size:.8em;color:var(--muted);margin-top:8px}
   <aside class="notes" id="notes" aria-label="Presenter notes"></aside>
 </main>
 <div id="toastHost" role="status" aria-live="polite"></div>
+
+<div class="tour" id="tour" hidden>
+  <div class="tour-card" id="tourCard" role="dialog" aria-modal="true" aria-labelledby="tourTitle" tabindex="-1">
+    <div class="tour-top">
+      <span class="tour-count" id="tourCount"></span>
+      <button class="tour-skip" id="tourSkip">Skip</button>
+    </div>
+    <div class="tour-slide" id="tourSlide"></div>
+    <div class="tour-dots" id="tourDots" role="group" aria-label="Tutorial steps"></div>
+    <div class="tour-nav">
+      <button class="tour-back" id="tourBack">Back</button>
+      <button class="tour-next" id="tourNext">Next</button>
+    </div>
+    <p class="tour-hint" id="tourHint">Swipe or use the arrow keys to move between steps.</p>
+  </div>
+</div>
 
 <script>
 /* ============================================================
@@ -248,12 +301,14 @@ const LIBRARY = [
   {cat:"environment", t:"Ear defenders or noise-reducing PPE", helps:"Sensory overload on the factory floor", cost:"Low (under €50)", ex:"Fitted defenders that still allow safety alarms to be heard."},
   {cat:"environment", t:"Quiet break space", helps:"Recovering from noise and busy canteens", cost:"€0 – Low", ex:"Small meeting room booked as a low-sensory room at break times."},
   {cat:"environment", t:"Workstation away from high-traffic areas", helps:"Distraction, interruptions", cost:"€0", ex:"Quality bench moved away from the forklift route."},
+  {cat:"environment", t:"Stimming tools and freedom to move", helps:"Self-regulation, stress, focus (stimming)", cost:"€0 – Low", ex:"Fidget toys or a stretchy band on a chair or bench leg; OK to stand, stretch or pace. Used at benches, in break areas and in the office, never near moving machinery."},
   {cat:"environment", t:"Non-flicker lighting", helps:"Headaches, visual sensitivity", cost:"Low – Medium (grant may help)", ex:"Replace flickering tube above Inspection Bay 3."},
   {cat:"communication", t:"Written summary after verbal briefings", helps:"Processing time, memory", cost:"€0", ex:"Shift handover notes posted on the team app."},
   {cat:"communication", t:"Picture-based or video SOPs", helps:"Reading load, multi-step processes", cost:"Low", ex:"Photo guide for Line 4 changeover."},
   {cat:"communication", t:"Questions or agenda before meetings", helps:"Preparation, reduces anxiety", cost:"€0", ex:"1:1 agenda shared the day before."},
   {cat:"communication", t:"Clear, direct language — one instruction at a time", helps:"Avoids misunderstanding (works both ways)", cost:"€0", ex:"\"Please restock bay 2 by 11:00\" instead of \"could you look at bay 2 when you get a sec?\""},
   {cat:"tasks", t:"Checklists for multi-step tasks", helps:"Working memory, attention", cost:"€0", ex:"Laminated start-up checklist at each machine."},
+  {cat:"tasks", t:"Mini whiteboard for quick notes", helps:"Working memory, keeping track of changes", cost:"Low", ex:"Small whiteboard at the workstation to jot down a changed instruction, a count or the next step."},
   {cat:"tasks", t:"Visual schedule or task timers", helps:"Time management, transitions", cost:"Low", ex:"Shift plan shown on a board by the line."},
   {cat:"tech", t:"Text-to-speech / speech-to-text software", helps:"Reading and writing load", cost:"Low (grant may help)", ex:"Read-aloud on the quality tablet; dictation for incident reports."},
   {cat:"tech", t:"Noise-cancelling headphones (office)", helps:"Concentration in open-plan areas", cost:"Low", ex:"For admin and planning staff."},
@@ -364,18 +419,18 @@ const R = id => S.requests.find(r => r.id === id);
 
 /* ---------- Presenter notes per screen ---------- */
 const NOTES = {
-  "employee:home":{t:"Employee home", lo:["LO2","LO4"], body:`<p>A calm, predictable home screen: same layout every visit, plain language, and <b>one clear next step</b>. Reduces cognitive load for people with executive-function or sensory differences.</p><p>The weekly check-in is <b>private by default</b>. Sam chooses whether anything is shared.</p>`, src:"CIPD (2024, p. 21): 31% of neurodivergent employees haven't told their line manager or HR about their neurodivergence, so the app never forces disclosure."},
-  "employee:passport":{t:"Adjustment passport", lo:["LO2","LO3","LO5"], body:`<p>A portable record of <b>how Sam works best</b>, written by Sam in their own words. It means they don't have to re-explain when their manager changes.</p><ul><li>Starts with <b>strengths</b> (neurodiversity paradigm), not deficits.</li><li>Focuses on <b>barriers and solutions</b>, not diagnosis (social model).</li><li><b>Per-section sharing</b> respects the choice to disclose; a diagnosis is optional and private by default.</li></ul>`, src:"Adjustment passports: ICTU and Ibec (2022, pp. 10–12): a live, confidential record of agreed accommodations, shared with a new manager only with the employee's written permission, so they don't have to repeat difficult conversations. Social model: Oliver (2013). Neurodiversity paradigm: Walker (2021), cited in Kadodia (2026). CIPD (2024, p. 8): of employees who hadn't disclosed, 37% feared assumptions based on stereotypes. CIPD (2024, p. 23): be guided by the individual about what they need."},
-  "employee:request":{t:"Asking for an adjustment", lo:["LO2","LO3","LO4"], body:`<p>A short guided form in 4 steps, with a progress bar and suggestions so the employee doesn't have to know the \"right\" answer.</p><ul><li>Asks <b>what gets in the way</b>, not \"what's your condition\".</li><li>Sam chooses <b>how to have the conversation</b> (in person, written, with a support person), reflecting the double empathy problem: communication is a two-way responsibility.</li></ul>`, src:"Milton (2012) double empathy problem; Employment Equality Acts 1998–2015 s.16; Doyle (2020) biopsychosocial model."},
-  "employee:requests":{t:"Request tracker", lo:["LO2","LO5"], body:`<p>Like a parcel tracker: Sam can see exactly where the request is and <b>when to expect the next step</b>. Uncertainty itself is a barrier.</p><p>Built in response to <i>O'Riordan v Omniplex</i>, where the Labour Court found <b>"considerable delay"</b> in engaging meaningfully with an autistic employee's requests, including set working hours, and increased the award from €12,000 to €29,000.</p>`, src:"O'Riordan v Omniplex Cork Ltd, ADJ-00051601 (WRC, 2024); EDA2620 (Labour Court, 2026)."},
-  "employee:support":{t:"Support & rights", lo:["LO2","LO3"], body:`<p>Plain-English explanation of rights under Irish equality law, plus signposting to internal and external support, including neurodivergent-led organisations.</p>`, src:"Employment Equality Acts 1998–2015, s.16; Council Directive 2000/78/EC, Art. 5; Nano Nagle School v Daly [2019] IESC 63."},
+  "employee:home":{t:"Employee home", lo:["LO2","LO4"], body:`<p>A calm, predictable home screen: same layout every visit, plain language, and <b>one clear next step</b>. Reduces cognitive load for people with executive-function or sensory differences.</p><p>The weekly check-in is <b>private by default</b>. Sam chooses whether anything is shared.</p><p>The <b>\"Truly You\"</b> core value brings the neuro-affirmative approach from the course into Jacks' own culture: differences are accepted, not treated as problems. It links straight to real support, because a values statement on its own is only symbolic.</p>`, src:"CIPD (2024, p. 8): 31% of neurodivergent employees haven't told their line manager or HR about their neurodivergence, so the app never forces disclosure. Annabi (2023, p. 2): build neuroinclusion into company narratives. Spoor et al. (2026, p. 2): inclusion efforts are criticised for \"words, not actions\"."},
+  "employee:passport":{t:"Adjustment passport", lo:["LO2","LO3","LO5"], body:`<p>A portable record of <b>how Sam works best</b>, written by Sam in their own words. It means they don't have to re-explain when their manager changes.</p><ul><li>Starts with <b>strengths</b> (neurodiversity paradigm), not deficits.</li><li>Focuses on <b>barriers and solutions</b>, not diagnosis (social model).</li><li><b>Per-section sharing</b> respects the choice to disclose; a diagnosis is optional and private by default.</li></ul>`, src:"Adjustment passports: ICTU and Ibec (2022, pp. 10–12): a live, confidential record of agreed accommodations, shared with a new manager only with the employee's written permission, so they don't have to repeat difficult conversations. Social model: Oliver (2013). CIPD (2024, p. 8): of employees who hadn't disclosed, 37% feared assumptions based on stereotypes."},
+  "employee:request":{t:"Asking for an adjustment", lo:["LO2","LO3","LO4"], body:`<p>A short guided form in 4 steps, with a progress bar and suggestions so the employee doesn't have to know the \"right\" answer.</p><ul><li>Asks <b>what gets in the way</b>, not \"what's your condition\".</li><li>Sam chooses <b>how to have the conversation</b> (in person, written, with a support person), reflecting the double empathy problem: communication is a two-way responsibility.</li></ul><p>This follows the UK Expert Academic Panel's core message: focus on <b>what someone needs</b>, not what condition they have, because there is no evidence that adjustments can be predicted from a diagnosis.</p>`, src:"DWP Expert Academic Panel on Neurodiversity (2026, ch. 4): avoid a focus on \"what condition someone has\" rather than \"what they need\"; \"no evidence\" that adjustments can be predicted from diagnosis. Milton (2012): double empathy problem. Doyle (2020): biopsychosocial model."},
+  "employee:requests":{t:"Request tracker", lo:["LO2","LO5"], body:`<p>Like a parcel tracker: Sam can see exactly where the request is and <b>when to expect the next step</b>. Uncertainty itself is a barrier.</p><p>Built in response to <i>O'Riordan v Omniplex</i>, where the Labour Court found <b>"considerable delay"</b> in engaging meaningfully with an autistic employee's requests for suitable rostering arrangements, and increased the award from €12,000 to €29,000.</p>`, src:"Omniplex Cork Ltd v O'Riordan, EDA2620 (Labour Court, 2026)."},
+  "employee:support":{t:"Support & rights", lo:["LO2","LO3"], body:`<p>Plain-English explanation of rights under Irish equality law, plus signposting to internal and external support, including neurodivergent-led organisations.</p><p><b>Co-coaching</b> (suggested by a team member who uses it at work) puts the double empathy problem into practice: a neutral specialist helps <b>both</b> the employee and the manager adjust, rather than expecting only the employee to change. It's the employee's choice, and the specialist sits outside the management line.</p>`, src:"Employment Equality Acts 1998–2015, s.16; Nano Nagle School v Daly [2019] IESC 63. Milton (2012): double empathy problem. DWP Expert Academic Panel on Neurodiversity (2026, ch. 4): preliminary evidence for coaching; high-quality coaching by trained practitioners improves performance, confidence and wellbeing."},
   "employee:settings":{t:"Make the app work for you", lo:["LO1","LO4"], body:`<p>The app is <b>neuroinclusive by design</b>: readable fonts (Atkinson Hyperlegible, Lexend), text size, extra spacing, dark and high-contrast themes, reduced motion, and a <b>daily digest</b> instead of constant notifications.</p><p>This reflects the \"spiky profile\". Different people need different settings, so one design doesn't fit all.</p>`, src:"Doyle (2020): spiky profile (p. 109); differences in sensory perception reported as a hallmark of neurominority experience (p. 118)."},
-  "manager:home":{t:"Manager dashboard", lo:["LO5"], body:`<p>\"Needs your attention\" puts every open request in order of urgency, with <b>response timers</b> based on company targets (acknowledge in 2 working days, talk within 10, decide within 20).</p><p>Delay is made visible before it becomes a legal or wellbeing problem.</p>`, src:"O'Riordan v Omniplex Cork Ltd, EDA2620 (Labour Court, 2026): \"considerable delay\"; award increased to €29,000, citing Von Colson that awards should be \"effective, dissuasive and proportionate\". Council Directive 2000/78/EC, Art. 17."},
-  "manager:request":{t:"Guided accommodation process", lo:["LO2","LO5"], body:`<p>The steps mirror Irish law and case law:</p><ul><li><b>Acknowledge</b> quickly.</li><li><b>Talk together</b>: in <i>Nano Nagle v Daly</i>, the Supreme Court said there is no strict legal duty to consult, but a wise employer will involve the employee meaningfully.</li><li><b>Get advice, don't assume</b>: CIPD (2024, p. 23) says don't make assumptions about what someone needs. In <i>Dunne v Sky Handling</i> (€15,000), the employer relied on a report based on a Google search about dyspraxia, written without meeting the employee or getting expert advice.</li><li><b>Decide</b>: declining requires a documented \"disproportionate burden\" assessment (s.16(3)) and HR sign-off.</li><li><b>Review</b>: needs change over time.</li></ul>`, src:"Employment Equality Acts 1998–2015, s.16(3); Council Directive 2000/78/EC, Art. 5; Nano Nagle School v Daly [2019] IESC 63; Dunne v Sky Handling Partner Ltd, ADJ-00017364 (WRC, 2019); CIPD (2024, p. 23)."},
-  "manager:team":{t:"My team", lo:["LO4","LO5"], body:`<p>Managers see <b>only what each person chose to share</b>. New starters are invited to create a passport, so adjustments are offered from day one rather than after problems appear.</p>`, src:"CIPD (2024, p. 22): \"Don't wait for people to disclose\"; CIPD (2024, p. 23): invite adjustment requests from everyone. Onboarding and retention: [sourcing reference for rationale]."},
-  "manager:member":{t:"Shared passport view", lo:["LO2","LO3"], body:`<p>A quick \"how to work well with me\" view. No diagnosis is shown unless the person chose to share it. Strengths come first.</p>`, src:"Kadodia (2026): masking is exhausting and accompanied by burnout."},
-  "manager:library":{t:"Adjustment library", lo:["LO2","LO4"], body:`<p>Searchable ideas organised by <b>barrier</b>, not by condition, so they work across a cross-section of neurodivergence (autism, ADHD, dyslexia, dyspraxia, Tourette's and more) and for people without a diagnosis.</p><p>Most are <b>free or low cost</b>, with manufacturing examples specific to Jacks.</p>`, src:"Doyle (2020): typical adjustments (Table 4, p. 117); usually under £1,200 per person (p. 115, UK figure)."},
-  "manager:learn":{t:"Micro-learning for managers", lo:["LO1","LO3","LO4"], body:`<p>Two-minute cards on the neurological basics, competing discourses (medical vs social model, the \"superpower\" problem), masking, double empathy and legal duties.</p><p>Short, practical training like this has been ordered as a remedy by the WRC [sourcing reference for rationale].</p>`, src:"Doyle (2020); Botha et al. (2024); Walker (2021), cited in Kadodia (2026); Milton (2012); Kadodia (2026); CIPD (2024)."},
+  "manager:home":{t:"Manager dashboard", lo:["LO5"], body:`<p>\"Needs your attention\" puts every open request in order of urgency, with <b>response timers</b> based on company targets (acknowledge in 2 working days, talk within 10, decide within 20).</p><p>Delay is made visible before it becomes a legal or wellbeing problem. The timers also give Jacks the <b>time-to-adjustment</b> measure that the UK Expert Academic Panel recommends employers track. (The Panel also recommends a 2-week legal deadline for responding to requests, a UK policy proposal, not Irish law.)</p>`, src:"DWP Expert Academic Panel on Neurodiversity (2026, ch. 3 and ch. 4): measure \"time-to-adjustment\"; 2-week response deadline (recommendation to UK policymakers). Omniplex Cork Ltd v O'Riordan, EDA2620 (Labour Court, 2026): \"considerable delay\"; award increased to €29,000."},
+  "manager:request":{t:"Guided accommodation process", lo:["LO2","LO5"], body:`<p>The steps mirror Irish law and case law:</p><ul><li><b>Acknowledge</b> quickly.</li><li><b>Talk together</b>: in <i>Nano Nagle v Daly</i>, the Supreme Court said there is no strict legal duty to consult, but a wise employer will involve the employee meaningfully.</li><li><b>Get advice, don't assume</b>: two people with the same diagnosis can need very different things. In <i>Dunne v Sky Handling</i> (€15,000), the employer relied on a report based on a Google search about dyspraxia, grounded on assumptions about people with dyspraxia rather than facts about the employee's own condition.</li><li><b>Decide</b>: declining requires a documented \"disproportionate burden\" assessment (s.16(3)) and HR sign-off.</li><li><b>Review</b>: needs change over time.</li></ul>`, src:"Employment Equality Acts 1998–2015, s.16(3); Nano Nagle School v Daly [2019] IESC 63; Dunne v Sky Handling Partner Ltd, ADJ-00017364 (WRC, 2019)."},
+  "manager:team":{t:"My team", lo:["LO4","LO5"], body:`<p>Managers see <b>only what each person chose to share</b>. New starters are invited to create a passport, so adjustments are offered from day one rather than after problems appear.</p><p>Tailoring matters for retention: in a UK survey of 990 neurodivergent employees, 49.6% of those whose adjustments were tailored to a great extent were very unlikely to leave, while 31.5% of those with no adjustments were very likely to leave. Line manager support, psychological safety and career satisfaction mattered even more than adjustments.</p>`, src:"CIPD (2024, pp. 23–24): \"Don't wait for people to disclose\"; invite adjustment requests from everyone. McDowall, Doyle and Kiseleva (2023, pp. 30–31): intention to leave by adjustments (Figure 6) and most important influences (Figure 7). DWP Expert Academic Panel on Neurodiversity (2026, ch. 4): treat adjustments as \"standard tools for onboarding and managing performance\", not favours."},
+  "manager:member":{t:"Shared passport view", lo:["LO2","LO3"], body:`<p>A quick \"how to work well with me\" view. No diagnosis is shown unless the person chose to share it. Strengths come first.</p><p>This is like the \"personal user manual\" and the Ultranauts \"Biodex\": everyone shares their communication preferences, response times, distractions and how they like feedback, so unwritten expectations are made explicit. Because the passport is offered to <b>everyone</b>, not only people who disclose, it moves towards universal design rather than one-off accommodations.</p>`, src:"Spoor et al. (2026, pp. 11–12): personal user manuals; p. 12: the Biodex as universal design for onboarding; p. 12: universal design reduces reliance on disclosure. pp. 2, 6: masking (camouflaging) is linked to stress, burnout and anxiety."},
+  "manager:library":{t:"Adjustment library", lo:["LO2","LO4"], body:`<p>Searchable ideas organised by <b>barrier</b>, not by condition, so they work across a cross-section of neurodivergence (autism, ADHD, dyslexia, dyspraxia, Tourette's and more) and for people without a diagnosis.</p><p>Most are <b>free or low cost</b>, with manufacturing examples specific to Jacks.</p><p>The categories reflect the <b>Autistic SPACE</b> framework (Sensory, Predictability, Acceptance, Communication, Empathy): sensory and workspace changes, predictable rotas and inductions, and clear communication. Ciara Molloy applied it to workplaces in the course. It was designed for autistic people, but these barriers are shared across many neurotypes.</p>`, src:"Doherty, McCowan and Shaw (2023) Autistic SPACE, British Journal of Hospital Medicine. Doyle (2020): typical adjustments (Table 4, p. 117); usually under £1,200 per person (p. 115, UK figure)."},
+  "manager:learn":{t:"Micro-learning for managers", lo:["LO1","LO3","LO4"], body:`<p>Two-minute cards on the neurological basics, competing discourses (medical vs social model, the \"superpower\" problem), masking, stimming, double empathy and legal duties.</p><p>Short and repeated on purpose: neuroinclusion training shouldn't be a one-off.</p>`, src:"Annabi (2023): don't rely on one-time-only training. Each card shows its own source."},
   "manager:settings":null
 };
 NOTES["manager:settings"] = NOTES["employee:settings"];
@@ -441,10 +496,9 @@ function renderNotes(route){
   notes.innerHTML = `
     <div class="eyebrow">Presenter notes · not part of the app</div>
     <h2>${n.t}</h2>
-    <div class="lo-tags">${n.lo.map(l=>`<span class="lo-tag">${l}</span>`).join("")}</div>
     ${n.body}
     <p class="src"><b>Evidence:</b> ${n.src}</p>
-    <p class="disclaimer">Prototype for a university group project. Jacks Manufacturing Ltd, its staff and its policies are fictional. Data is stored only in this browser. Try switching between <b>Employee</b> and <b>Line manager</b>: actions in one view update the other.</p>`;
+    <p class="disclaimer">Prototype for a college group project. Jacks Manufacturing Ltd, its staff and its policies are fictional. Data is stored only in this browser. Try switching between <b>Employee</b> and <b>Line manager</b>: actions in one view update the other.</p>`;
 }
 
 /* ---------- Employee screens ---------- */
@@ -457,6 +511,11 @@ function eHome(){
   return `
     <h2 class="h">Hi Sam 👋</h2>
     <p class="sub">Here's what's happening. Nothing here is urgent.</p>
+
+    <div class="card" style="border-left:4px solid var(--gold)">
+      <p style="margin:0 0 8px">✨ <b>Truly You</b> is one of our core values. Jacks is a neuro-affirmative workplace: you shouldn't have to hide how you work. Tell us what helps you work at your best.</p>
+      <button class="btn small secondary" data-go="support">See what support is available</button>
+    </div>
 
     ${open.map(r => { const n = nextDue(r); const st = statusOf(r); return `
       <button class="list-btn" data-go="request-detail" data-id="${r.id}">
@@ -575,6 +634,7 @@ function eRequest(){
     <p class="sub">Niamh will arrange a conversation in the way that suits you.</p>
     <div class="seg" role="group" aria-label="Conversation format">${["In person","In person, with a written summary afterwards","Video call","In writing only"].map(o=>`<button data-act="pickTalk" data-v="${esc(o)}" aria-pressed="${w.talk===o}">${esc(o)}</button>`).join("")}</div>
     <label class="toggle" style="margin-top:8px"><span>I'd like to bring a support person (colleague, union rep or ND Network member)</span><input type="checkbox" data-act="toggleSupport" ${w.support?"checked":""}></label>
+    <label class="toggle"><span>I'd like Mary, our neurodiversity specialist, to co-coach the conversation</span><input type="checkbox" data-act="toggleCoachTalk" ${w.coach?"checked":""}></label>
     <div class="card" style="margin-top:12px">
       <h4>Check before sending</h4>
       <p><b>${CATS[w.cat].icon} ${CATS[w.cat].name}</b></p>
@@ -634,17 +694,44 @@ function eSupport(){
     <h2 class="h">Support & your rights</h2>
     <p class="sub">Plain-English information. Tap a heading to open it.</p>
     <details class="learn"><summary>⚖️ Your rights at work (Ireland)</summary>
-      <p>Under the <b>Employment Equality Acts 1998–2015</b>, employers must take <b>"appropriate measures"</b> (reasonable accommodation) so a disabled person can do their job, unless it would be a disproportionate burden. Autism, ADHD, dyslexia, dyspraxia and similar conditions are covered by the law's broad definition of disability.</p>
+      <p>Under the <b>Employment Equality Acts 1998–2015</b>, employers must take <b>"appropriate measures"</b> (reasonable accommodation) so a disabled person can do their job, unless it would be a disproportionate burden. Autism, ADHD, dyslexia, dyspraxia and similar conditions can be covered by the law's broad definition of disability.</p>
       <p>The Supreme Court (<i>Nano Nagle v Daly</i>, 2019) said this can include sharing out tasks differently, though not creating a completely different job, and that a wise employer involves the employee.</p></details>
     <details class="learn"><summary>🪪 Do I need a diagnosis?</summary>
       <p><b>No.</b> At Jacks you can ask for an adjustment based on what you need. Many people are undiagnosed, waiting for assessment, or prefer not to share. That's your choice.</p></details>
     <details class="learn"><summary>🗣️ What if I'm not happy with a decision?</summary>
       <p>Talk to HR or bring a support person to a follow-up meeting. You can also use the grievance procedure. Externally, the <b>Workplace Relations Commission (WRC)</b> handles equality complaints, and the <b>Irish Human Rights and Equality Commission (IHREC)</b> gives information.</p></details>
     <h3 class="h">Who can help</h3>
+    <div class="card">
+      <h4>🤝 Co-coaching with Mary</h4>
+      <p style="margin:0 0 6px">Mary is an independent neurodiversity specialist who works with Jacks. She holds the <b>Certificate in Harnessing Neurodiversity in the Modern Workplace</b> from the National College of Ireland (NCI).</p>
+      <p style="margin:0 0 6px">In a co-coaching session, Mary meets you and your line manager together. She helps you both understand each other's ways of working and communicating, and sort out misunderstandings early.</p>
+      <p class="hint" style="margin:0 0 10px">You choose whether to book. Sessions are confidential, and Mary isn't part of your management line.</p>
+      ${S.coach ? `<div class="card green" style="margin:0"><p style="margin:0">✓ Request sent. Mary will contact you to arrange a time. Niamh is only invited once you confirm.</p></div>`
+        : `<button class="btn small" data-act="bookCoach">Book a session with Mary and Niamh</button>`}
+    </div>
     <div class="card"><h4>👥 Jacks Neurodiversity Network</h4><p class="sub" style="margin:0">Peer group led by neurodivergent colleagues. Meets monthly, plus a group chat.</p></div>
     <div class="card"><h4>🧑‍💼 HR — Ciara (Wellbeing Lead)</h4><p class="sub" style="margin:0">Confidential. Book by message, phone or drop-in on Tuesdays.</p></div>
     <div class="card"><h4>📞 Employee Assistance Programme</h4><p class="sub" style="margin:0">Free, confidential counselling 24/7.</p></div>
-    <div class="card"><h4>🌍 External organisations</h4><p class="sub" style="margin:0">AsIAm (autism), ADHD Ireland, Dyslexia Ireland, Dyspraxia/DCD Ireland.</p></div>`;
+    <div class="card"><h4>🌍 External organisations</h4>
+      <p class="sub" style="margin:0 0 6px">Independent Irish organisations. Links open in a new tab.</p>
+      ${[
+        ["Neurodivergence and related conditions", [
+          ["AsIAm","autism","https://asiam.ie/"],
+          ["ADHD Ireland","ADHD","https://adhdireland.ie/"],
+          ["Dyslexia Ireland","dyslexia","https://dyslexia.ie/"],
+          ["Dyspraxia/DCD Ireland","dyspraxia/DCD","https://www.dyspraxia.ie/"],
+          ["Tourette's Support NI & ROI","Tourette syndrome","https://tourettessupportni.org/#services"],
+          ["OCD Ireland","OCD, BDD and trichotillomania","https://ocdireland.org/"],
+          ["Inclusion Ireland","intellectual disability rights","https://www.inclusionireland.ie/"],
+          ["William Syndrome Ireland","Williams syndrome","https://www.williamssyndrome.ie/"]]],
+        ["Mental health", [
+          ["Shine","mental health support and peer groups","https://www.shine.ie/"],
+          ["Aware","depression and bipolar disorder","https://www.aware.ie/"],
+          ["turn2me","free online mental health support","https://turn2me.ie/"],
+          ["Pieta","suicide and self-harm support","https://www.pieta.ie/"]]]
+      ].map(([g,items])=>`<h5 class="ext-group">${g}</h5><ul class="ext-links">${items
+          .map(([n,d,u])=>`<li><a href="${u}" target="_blank" rel="noopener noreferrer">${esc(n)}<span class="sr"> (opens in a new tab)</span></a> <span class="sub">(${esc(d)})</span></li>`).join("")}</ul>`).join("")}
+      </div>`;
 }
 
 /* ---------- Manager screens ---------- */
@@ -681,7 +768,8 @@ function mRequest(){
       <button class="btn block" style="margin-top:10px" data-act="ack">Send acknowledgement</button></div>`;
   } else if(!s.talk.done){
     action = `<div class="card gold"><h4>Step 2 · Talk together</h4>
-      <p class="hint">${esc(p.name.split(" ")[0])} asked for: <b>${esc(r.talk)}</b>${r.support?" · bringing a support person":""}</p>
+      <p class="hint">${esc(p.name.split(" ")[0])} asked for: <b>${esc(r.talk)}</b>${r.support?" · bringing a support person":""}${r.coach?" · with Mary co-coaching":""}</p>
+      ${r.coach ? "" : `<p class="hint">If communication feels stuck, you can offer a co-coaching session with Mary, our neurodiversity specialist. It's ${esc(p.name.split(" ")[0])}'s choice.</p>`}
       ${s.talk.booked ? `<p>📅 Booked for <b>${fmt(s.talk.booked)}</b></p>` : `
         <label class="f" for="talkDate">Date</label><input type="date" id="talkDate" value="${addWorkingDays(today(),2).toISOString().slice(0,10)}">
         <button class="btn block secondary" style="margin-top:10px" data-act="bookTalk">Book conversation</button>`}
@@ -695,7 +783,7 @@ function mRequest(){
   } else if(!(s.advice.done || s.advice.skipped)){
     action = `<div class="card gold"><h4>Step 3 · Get advice if you need it</h4>
       <p>Is Occupational Health or specialist advice needed to decide well?</p>
-      <div class="law">⚠️ <b>Don't research the condition and assume.</b> Even people with the same type of neurodivergence can need very different things (CIPD, 2024, p. 23). In <i>Dunne v Sky Handling</i> (WRC, 2019, €15,000), the employer relied on a report based on a Google search about dyspraxia, written without meeting the employee or getting expert advice.</div>
+      <div class="law">⚠️ <b>Don't research the condition and assume.</b> Even people with the same type of neurodivergence can need very different things (CIPD, 2024, p. 24). In <i>Dunne v Sky Handling</i> (WRC, 2019, €15,000), the employer relied on a report based on a Google search about dyspraxia, grounded on assumptions about people with dyspraxia rather than facts about the employee's own condition.</div>
       <div class="row" style="margin-top:10px"><button class="btn secondary" style="flex:1" data-act="adviceSkip">Not needed</button><button class="btn" style="flex:1" data-act="adviceRefer">Refer to OH</button></div></div>`;
   } else if(!s.decide.done){
     const o = draft.outcome;
@@ -782,13 +870,16 @@ function libCards(items){
 
 function mLearn(){
   const cards = [
-    ["🧠 Neurodiversity in 60 seconds","Neurodiversity means natural variation in how human brains work. The idea was developed collectively by autistic people in online communities in the 1990s. Around 15–20% of people are estimated to be neurodivergent: autistic, ADHD, dyslexic, dyspraxic, Tourette's and more. Research supports a genetic component to most of these conditions, which affect things like attention, sensory processing, communication and executive function. Many people have a \"spiky profile\": big strengths alongside real difficulties.","Doyle (2020, pp. 109–112); Botha et al. (2024)"],
-    ["🔍 Ask, don't assume","Two people with the same diagnosis can need completely different things. Ask the person what helps. Never google a condition and decide what someone can or can't do.","CIPD (2024, p. 23); Dunne v Sky Handling Partner Ltd, ADJ-00017364 (WRC, 2019)"],
+    ["🧠 Neurodiversity in 60 seconds","Neurodiversity means natural variation in how human brains work. The idea was developed collectively by neurodivergent people, especially in autistic online communities, in the 1990s. Around 15–20% of people are estimated to be neurodivergent: autistic, ADHD, dyslexic, dyspraxic, Tourette's and more. Research supports a genetic component to most of these conditions, which affect things like attention, sensory processing, communication and executive function. Many people have a \"spiky profile\": big strengths alongside real difficulties.","Doyle (2020, pp. 109–112); Botha et al. (2024)"],
+    ["🔍 Ask, don't assume","Two people with the same diagnosis can need completely different things. Ask the person what helps. Never google a condition and decide what someone can or can't do. There's no evidence that the right adjustments can be predicted from a diagnosis.","DWP Expert Academic Panel on Neurodiversity (2026, ch. 4); Dunne v Sky Handling Partner Ltd, ADJ-00017364 (WRC, 2019)"],
+    ["🕰️ Don't wait until someone is struggling","Support at work is often reactive, and often only offered once there's medical proof of a diagnosis. In Kanasugi v University of Limerick (WRC, 2026), an employee disclosed his ADHD diagnosis at his final probation meeting. He was dismissed and his claim failed. Earlier conversations could have helped both sides. At Jacks, anyone can ask for an adjustment at any time, and probation reviews include the question \"Is anything getting in the way?\" In one UK study, a graduate chose to disclose her autism when her manager used the probation review to ask what support would help.","Spoor et al. (2026, pp. 9–10); Tomlinson and Vincent (2025, p. 964); Kanasugi v University of Limerick, ADJ-00064337 (WRC, 2026)"],
+    ["🤝 You matter most","Neurodivergent employees see their line manager as the first port of call for support. In a UK survey, the boss's support, psychological safety and career satisfaction influenced whether people planned to leave more than adjustments did. Tailored adjustments still helped: half of those with well-tailored adjustments were very unlikely to leave.","McDowall, Doyle and Kiseleva (2023, pp. 30–31, 51)"],
     ["⏱️ Speed matters","Delay costs. The Labour Court criticised \"considerable delay\" in engaging meaningfully with an employee's requests, and increased the award to €29,000. Acknowledge quickly, talk soon, decide clearly.","O'Riordan v Omniplex Cork Ltd, EDA2620 (Labour Court, 2026)"],
-    ["⭐ Careful with \"superpower\"","Meant kindly, but it can dismiss real difficulties and make people feel they have to be exceptional to be accepted. Talk about strengths and support together.","[sourcing reference for rationale]"],
+    ["⭐ Careful with \"superpower\"","Meant kindly, but the \"superpower\" story overplays talents and ignores real challenges. It can also turn into a stereotype, where people are valued for what they can produce while the barriers they face stay in place. Talk about strengths and support together.","Spoor et al. (2026, pp. 2, 4–5)"],
+    ["🌀 Stimming is a strategy","Stimming means repeated movements, sounds or ways of handling objects, like fidgeting, tapping, rocking or humming. Everyone does some of it. Many autistic and ADHD people use it to manage stress and sensory input. Autistic adults are often made to hide it as \"unprofessional\", which adds to the exhausting work of masking. Unless there's a genuine safety risk near machinery, let it be. If something needs to change, ask what would help (a fidget tool, a movement break, a quiet room) rather than asking someone to stop.","Catherine Rose and Lupton (2026, pp. 2581, 2591, 2597); course slides on stimming (NCI, 3 October 2026)"],
     ["🔁 Communication goes both ways","The \"double empathy problem\": misunderstandings between autistic and non-autistic people come from both sides, not a deficit in one person. Being clear and direct helps everyone.","Milton (2012)"],
-    ["🎭 Masking","Many autistic people hide their traits to fit in (\"masking\"). It's exhausting and often comes with burnout. A team where people don't need to mask is safer and more productive.","Kadodia (2026)"],
-    ["⚖️ Your legal duty","Employment Equality Acts 1998–2015 s.16: provide appropriate measures unless they're a disproportionate burden, taking cost, company resources and available grants into account. Applies to recruitment too.","Employment Equality Acts 1998–2015, s.16; Council Directive 2000/78/EC, Art. 5; Nano Nagle School v Daly [2019] IESC 63"]
+    ["🎭 Masking","Many neurodivergent people hide their traits to fit in (\"masking\" or \"camouflaging\"). It's exhausting and is linked to stress, burnout and anxiety. A team where people don't have to mask reduces that strain and helps people stay.","Spoor et al. (2026, pp. 2, 6, 13)"],
+    ["⚖️ Your legal duty","Employment Equality Acts 1998–2015 s.16: provide appropriate measures unless they're a disproportionate burden, taking cost, company resources and available grants into account. Applies to recruitment too.","Employment Equality Acts 1998–2015, s.16; Nano Nagle School v Daly [2019] IESC 63"]
   ];
   return `
     <h2 class="h">Learn in 2 minutes</h2>
@@ -839,10 +930,12 @@ const ACTIONS = {
   toggleHelp(el){ const t = el.dataset.t, h = S.wizard.helps; el.checked ? h.push(t) : h.splice(h.indexOf(t),1); },
   pickTalk(el){ S.wizard.talk = el.dataset.v; render(); },
   toggleSupport(el){ S.wizard.support = el.checked; },
+  toggleCoachTalk(el){ S.wizard.coach = el.checked; },
+  bookCoach(){ S.coach = true; save(); toast("Request sent to Mary"); render(); },
   submitRequest(){
     const w = S.wizard; const helps = [...w.helps]; if(w.own.trim()) helps.push(w.own.trim());
     const r = { id:"r"+Date.now(), who:"sam", cat:w.cat, title:(helps[0] && !helps[0].startsWith("I'm not sure")) ? helps[0] : CATS[w.cat].name + " support",
-      barrier:w.barrier.trim() || "(No description given)", helps, talk:w.talk, support:w.support, submitted:iso(today()),
+      barrier:w.barrier.trim() || "(No description given)", helps, talk:w.talk, support:w.support, coach:!!w.coach, submitted:iso(today()),
       steps:{ack:{},talk:{},advice:{},decide:{},review:{}}, msgs:[] };
     S.requests.push(r); S.wizard = null; save(); toast("Sent to Niamh ✓"); go("request-detail",{id:r.id});
   },
@@ -908,7 +1001,81 @@ document.querySelectorAll("[data-role]").forEach(b => b.onclick = () => { S.role
 document.getElementById("toggleNotes").onclick = () => { S.showNotes = !S.showNotes; save(); render(); };
 document.querySelectorAll("[data-reset]").forEach(b => b.onclick = () => { if(confirm("Reset the demo to its starting data?")){ S = seed(); save(); render(); toast("Demo reset"); } });
 
+/* ---------- First-visit tutorial ---------- */
+const TOUR_KEY = "adjustable-tour-seen-v1";
+const TOUR = [
+  {icon:"🪪", title:"Welcome to AdjustAble", body:`
+    <p>AdjustAble helps employees at <b>Jacks Manufacturing Ltd</b> ask for workplace adjustments, and helps their line managers respond <b>fairly, quickly and in line with Irish equality law</b>.</p>
+    <p>It asks <b>what gets in the way</b>, not what your diagnosis is.</p>
+    <p class="small">A prototype for a college group project. The company, people and data are fictional. Anything you enter stays on your device.</p>`},
+  {icon:"🔄", title:"Two views, one story", body:`
+    <p>Switch between the two views with the buttons ${matchMedia("(max-width:860px)").matches ? "just above the phone" : "at the top of the page"}:</p>
+    <ul><li><b>Employee (Sam)</b>: builds an adjustment passport and asks for support.</li>
+    <li><b>Line manager (Niamh)</b>: responds, step by step, with timers and guidance.</li></ul>
+    <p><b>Try this:</b> as Sam, ask for an adjustment. Then switch to Niamh and respond. What you do in one view shows up in the other.</p>`},
+  {icon:"💡", title:"See the thinking behind it", body:`
+    <p>The <b>notes</b> ${matchMedia("(max-width:860px)").matches ? "below the phone" : "beside the phone"} explain each screen and the research and Irish law behind it.</p>
+    <p>Open <b>Settings</b> in the app to change the text size, font, colours and motion. The app is designed to work for different minds.</p>
+    <p class="small">Use <b>Reset</b> to start the demo again, or <b>How it works</b> to see this guide again.</p>`}
+];
+const tour = document.getElementById("tour"), tourCard = document.getElementById("tourCard");
+if(matchMedia("(pointer: coarse)").matches) document.getElementById("tourHint").textContent = "Swipe left or right to move between steps.";
+let tourStep = 0, tourReturn = null;
+
+function renderTour(animate){
+  const s = TOUR[tourStep], last = tourStep === TOUR.length - 1;
+  document.getElementById("tourCount").textContent = `Step ${tourStep+1} of ${TOUR.length}`;
+  const slide = document.getElementById("tourSlide");
+  slide.innerHTML = `<div class="tour-icon" aria-hidden="true">${s.icon}</div><h2 id="tourTitle">${s.title}</h2>${s.body}`;
+  slide.classList.remove("anim"); if(animate){ void slide.offsetWidth; slide.classList.add("anim"); }
+  document.getElementById("tourDots").innerHTML = TOUR.map((t,i) =>
+    `<button data-step="${i}" aria-label="Step ${i+1}: ${t.title}" ${i===tourStep ? 'aria-current="step"' : ''}></button>`).join("");
+  document.getElementById("tourBack").disabled = tourStep === 0;
+  document.getElementById("tourNext").textContent = last ? "Start exploring" : "Next";
+  document.getElementById("tourSkip").style.visibility = last ? "hidden" : "visible";
+}
+function tourGo(i){ if(i < 0 || i >= TOUR.length || i === tourStep) return; tourStep = i; renderTour(true); }
+function openTour(){
+  tourReturn = document.activeElement; tourStep = 0; renderTour(false);
+  tour.hidden = false; document.body.style.overflow = "hidden"; tourCard.focus();
+}
+function closeTour(){
+  tour.hidden = true; document.body.style.overflow = "";
+  try { localStorage.setItem(TOUR_KEY, "1"); } catch(e){}
+  if(tourReturn && tourReturn.focus) tourReturn.focus();
+}
+
+document.getElementById("tourNext").onclick = () => tourStep === TOUR.length - 1 ? closeTour() : tourGo(tourStep + 1);
+document.getElementById("tourBack").onclick = () => tourGo(tourStep - 1);
+document.getElementById("tourSkip").onclick = closeTour;
+document.getElementById("tourDots").onclick = e => { const b = e.target.closest("[data-step]"); if(b) tourGo(+b.dataset.step); };
+document.querySelectorAll("[data-tour]").forEach(b => b.onclick = openTour);
+tour.addEventListener("click", e => { if(e.target === tour) closeTour(); });
+tour.addEventListener("keydown", e => {
+  if(e.key === "Escape"){ closeTour(); return; }
+  if(e.key === "ArrowRight"){ tourGo(tourStep + 1); return; }
+  if(e.key === "ArrowLeft"){ tourGo(tourStep - 1); return; }
+  if(e.key === "Tab"){ // keep focus inside the dialog
+    const f = [...tourCard.querySelectorAll("button:not(:disabled)")].filter(b => b.offsetParent !== null && b.style.visibility !== "hidden");
+    if(!f.length) return;
+    const first = f[0], lastEl = f[f.length-1];
+    if(e.shiftKey && (document.activeElement === first || document.activeElement === tourCard)){ e.preventDefault(); lastEl.focus(); }
+    else if(!e.shiftKey && document.activeElement === lastEl){ e.preventDefault(); first.focus(); }
+  }
+});
+let tourX = null, tourY = null;
+tourCard.addEventListener("touchstart", e => { tourX = e.touches[0].clientX; tourY = e.touches[0].clientY; }, {passive:true});
+tourCard.addEventListener("touchend", e => {
+  if(tourX === null) return;
+  const dx = e.changedTouches[0].clientX - tourX, dy = e.changedTouches[0].clientY - tourY;
+  if(Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) tourGo(tourStep + (dx < 0 ? 1 : -1));
+  tourX = tourY = null;
+}, {passive:true});
+
 render();
+let tourSeen = false;
+try { tourSeen = localStorage.getItem(TOUR_KEY) === "1"; } catch(e){}
+if(!tourSeen) openTour();
 </script>
 </body>
 </html>
